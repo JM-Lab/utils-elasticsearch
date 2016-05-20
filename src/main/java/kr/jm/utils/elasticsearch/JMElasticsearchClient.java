@@ -1,14 +1,14 @@
 package kr.jm.utils.elasticsearch;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.TimeUnit;
+import static java.util.stream.Collectors.toSet;
 
-import org.elasticsearch.action.ListenableActionFuture;
+import java.util.Collections;
+import java.util.Map;
+import java.util.Set;
+
+import org.elasticsearch.ElasticsearchException;
 import org.elasticsearch.action.admin.indices.mapping.get.GetMappingsResponse;
+import org.elasticsearch.action.admin.indices.stats.IndicesStatsRequest;
 import org.elasticsearch.action.delete.DeleteResponse;
 import org.elasticsearch.action.deletebyquery.DeleteByQueryResponse;
 import org.elasticsearch.action.index.IndexRequestBuilder;
@@ -19,141 +19,159 @@ import org.elasticsearch.action.search.SearchType;
 import org.elasticsearch.client.Client;
 import org.elasticsearch.client.transport.NoNodeAvailableException;
 import org.elasticsearch.client.transport.TransportClient;
-import org.elasticsearch.common.hppc.ObjectLookupContainer;
-import org.elasticsearch.common.hppc.cursors.ObjectCursor;
 import org.elasticsearch.common.settings.ImmutableSettings;
-import org.elasticsearch.common.settings.ImmutableSettings.Builder;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.transport.InetSocketTransportAddress;
 import org.elasticsearch.index.query.FilterBuilder;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.node.NodeBuilder;
 import org.elasticsearch.search.aggregations.AbstractAggregationBuilder;
 
-import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import kr.jm.utils.datastructure.JMArrays;
+import kr.jm.utils.exception.JMExceptionManager;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.experimental.Delegate;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class JMElasticsearchClient {
+public class JMElasticsearchClient implements Client {
 
+	private static final String LOCALHOST_9300 = "localhost:9300";
+	private static final String NETWORK_HOST = "network.host";
 	private static final String CLIENT_TRANSPORT_IGNORE_CLUSTER_NAME =
 			"client.transport.ignore_cluster_name";
 	private static final String CLUSTER_NAME = "cluster.name";
 	private static final String CLIENT_TRANSPORT_SNIFF =
 			"client.transport.sniff";
+	private static final ObjectMapper JsonMapper = new ObjectMapper();
+
+	private String ipPortListByComma;
+	private boolean isTransportClient;
+	@Getter
+	private Settings settings;
 
 	@Delegate
-	protected Client elasticsearchClient;
-	private long SENDING_TIME_OUT;
-	private int RETRY_THRESHOLD;
-	private String ipNPortListByComma;
-	private ObjectMapper jsonMapper;
-	private Settings elasticsearchSettings;
-	private int defaultPageSize;
+	private Client elasticsearchClient;
 
-	synchronized private TransportClient
-			initElasticsearchClient(Settings settings) {
+	@Getter
+	@Setter
+	private long timeoutMillis = 5000;
+	@Getter
+	@Setter
+	private int retryCount = 2;
+	@Getter
+	@Setter
+	private int defaultHitsCount = 1000;
+
+	public JMElasticsearchClient() {
+		this(true, LOCALHOST_9300, getSettingBuilderWithIgnoreClusterName());
+	}
+
+	public JMElasticsearchClient(Client elasticsearchClient) {
+		this.elasticsearchClient = elasticsearchClient;
+	}
+
+	public JMElasticsearchClient(String ipPortListByComma) {
+		this(true, ipPortListByComma, getSettingBuilderWithIgnoreClusterName());
+	}
+
+	public JMElasticsearchClient(String ipPortListByComma,
+			boolean clientTransportSniff) {
+		this(true, ipPortListByComma,
+				getSettingsWithClientTransportSniff(
+						getSettingBuilderWithIgnoreClusterName(),
+						clientTransportSniff));
+	}
+
+	public JMElasticsearchClient(String ipPortListByComma,
+			boolean clientTransportSniff, String clusterName) {
+		this(true, ipPortListByComma,
+				getSettingsWithClientTransportSniff(
+						getSettingBuilderWithClusterName(clusterName),
+						clientTransportSniff));
+	}
+
+	public JMElasticsearchClient(boolean isTransportClient,
+			String ipPortListByComma) {
+		this(isTransportClient, ipPortListByComma,
+				getSettingBuilderWithIgnoreClusterName());
+	}
+
+	public JMElasticsearchClient(boolean isTransportClient,
+			String ipPortListByComma, boolean clientTransportSniff) {
+		this(true, ipPortListByComma,
+				getSettingsWithClientTransportSniff(
+						getSettingBuilderWithIgnoreClusterName(),
+						clientTransportSniff));
+	}
+
+	private static Settings getSettingBuilderWithIgnoreClusterName() {
+		return ImmutableSettings.settingsBuilder()
+				.put(CLIENT_TRANSPORT_IGNORE_CLUSTER_NAME, true).build();
+	}
+
+	public JMElasticsearchClient(boolean isTransportClient,
+			String ipPortListByComma, String clusterName) {
+		this(isTransportClient, ipPortListByComma,
+				getSettingBuilderWithClusterName(clusterName));
+	}
+
+	public JMElasticsearchClient(boolean isTransportClient,
+			String ipPortListByComma, boolean clientTransportSniff,
+			String clusterName) {
+		this(isTransportClient, ipPortListByComma,
+				getSettingsWithClientTransportSniff(
+						getSettingBuilderWithClusterName(clusterName),
+						clientTransportSniff));
+	}
+
+	public JMElasticsearchClient(boolean isTransportClient,
+			String ipPortListByComma, Settings settings) {
+		this.isTransportClient = isTransportClient;
+		this.ipPortListByComma = ipPortListByComma;
+		this.settings = isTransportClient ? settings
+				: ImmutableSettings.settingsBuilder()
+						.put(NETWORK_HOST, ipPortListByComma).put(settings)
+						.build();
+		this.elasticsearchClient = initClient();
+	}
+
+	private static Settings
+			getSettingBuilderWithClusterName(String clusterName) {
+		return ImmutableSettings.settingsBuilder()
+				.put(CLUSTER_NAME, clusterName).build();
+	}
+
+	private static Settings getSettingsWithClientTransportSniff(
+			Settings settings, boolean clientTransportSniff) {
+		return ImmutableSettings.settingsBuilder()
+				.put(CLIENT_TRANSPORT_SNIFF, clientTransportSniff).put(settings)
+				.build();
+	}
+
+	private Client initClient() {
+		return this.isTransportClient ? buildTransportClient()
+				: buildNodeClient();
+	}
+
+	private Client buildTransportClient() {
 		TransportClient transportClient = new TransportClient(settings);
-		String[] ipNPorts = ipNPortListByComma.split(",");
-		for (String ipNPort : ipNPorts) {
-			String[] seperateIpNPort = ipNPort.split(":");
+		for (String ipPort : ipPortListByComma.split(",")) {
+			String[] seperatedIpPort = ipPort.split(":");
 			transportClient.addTransportAddress(new InetSocketTransportAddress(
-					seperateIpNPort[0], Integer.parseInt(seperateIpNPort[1])));
+					seperatedIpPort[0], Integer.parseInt(seperatedIpPort[1])));
 		}
 		return transportClient;
 	}
 
-	private Builder getSettingBuilder(boolean clientTransportSniff) {
-		return ImmutableSettings.settingsBuilder().put(CLIENT_TRANSPORT_SNIFF,
-				clientTransportSniff);
-	}
-
-	public JMElasticsearchClient(String clusterName, String ipNPortListByComma,
-			boolean clientTransportSniff, int timeOutSeconds, int retryCount,
-			int defaultHitsCount) {
-		init(ipNPortListByComma, defaultHitsCount,
-				getSettingBuilder(clientTransportSniff)
-						.put(CLUSTER_NAME, clusterName).build(),
-				retryCount, timeOutSeconds);
-	}
-
-	public JMElasticsearchClient(String clusterName, String ipNPortListByComma,
-			boolean clientTransportSniff, int retryCount,
-			int defaultHitsCount) {
-		init(ipNPortListByComma, defaultHitsCount,
-				getSettingBuilder(clientTransportSniff)
-						.put(CLUSTER_NAME, clusterName).build(),
-				retryCount);
-	}
-
-	public JMElasticsearchClient(String ipNPortListByComma,
-			boolean clientTransportSniff, int timeOutSeconds, int retryCount,
-			int defaultHitsCount) {
-		init(ipNPortListByComma, defaultHitsCount,
-				getSettingBuilder(clientTransportSniff)
-						.put(CLIENT_TRANSPORT_IGNORE_CLUSTER_NAME, true)
-						.build(),
-				retryCount, timeOutSeconds);
-	}
-
-	public JMElasticsearchClient(String ipNPortListByComma,
-			boolean clientTransportSniff, int retryCount,
-			int defaultHitsCount) {
-		init(ipNPortListByComma, defaultHitsCount,
-				getSettingBuilder(clientTransportSniff)
-						.put(CLIENT_TRANSPORT_IGNORE_CLUSTER_NAME, true)
-						.build(),
-				retryCount);
-	}
-
-	public JMElasticsearchClient(String clusterName, String ipNPortListByComma,
-			int timeOutSeconds, int retryCount, int defaultHitsCount) {
-		this(clusterName, ipNPortListByComma, true, timeOutSeconds, retryCount,
-				defaultHitsCount);
-	}
-
-	public JMElasticsearchClient(String clusterName, String ipNPortListByComma,
-			int retryCount, int defaultHitsCount) {
-		this(clusterName, ipNPortListByComma, true, retryCount,
-				defaultHitsCount);
-	}
-
-	public JMElasticsearchClient(String ipNPortListByComma, int timeOutSeconds,
-			int retryCount, int defaultHitsCount) {
-		init(ipNPortListByComma, defaultHitsCount,
-				getSettingBuilder(true)
-						.put(CLIENT_TRANSPORT_IGNORE_CLUSTER_NAME, true)
-						.build(),
-				retryCount, timeOutSeconds);
-	}
-
-	public JMElasticsearchClient(String ipNPortListByComma, int retryCount,
-			int defaultHitsCount) {
-		init(ipNPortListByComma, defaultHitsCount,
-				getSettingBuilder(true)
-						.put(CLIENT_TRANSPORT_IGNORE_CLUSTER_NAME, true)
-						.build(),
-				retryCount);
-	}
-
-	private void init(String ipNPortListByComma, int defaultPageSize,
-			Settings settings, int retryCount, int timeOutSeconds) {
-		this.ipNPortListByComma = ipNPortListByComma;
-		this.elasticsearchClient = initElasticsearchClient(settings);
-		this.RETRY_THRESHOLD = retryCount;
-		this.defaultPageSize = defaultPageSize;
-		this.jsonMapper = new ObjectMapper();
-		this.SENDING_TIME_OUT = TimeUnit.SECONDS.toMillis(timeOutSeconds);
-	}
-
-	private void init(String ipNPortListByComma, int defaultPageSize,
-			Settings settings, int retryCount) {
-		init(ipNPortListByComma, defaultPageSize, settings, retryCount, 0);
+	private Client buildNodeClient() {
+		return NodeBuilder.nodeBuilder().settings(settings).data(false)
+				.client(true).build().client();
 	}
 
 	public IndexResponse sendData(String jsonSource, String index, String type,
@@ -169,10 +187,9 @@ public class JMElasticsearchClient {
 	}
 
 	public IndexResponse sendDataWithObjectMapper(Object sourceObject,
-			String index, String type, String id) throws JsonParseException,
-					JsonMappingException, JsonProcessingException, IOException {
+			String index, String type, String id) {
 		return sendDataToElasticsearch(prepareIndex(index, type, id)
-				.setSource(jsonMapper.writeValueAsString(sourceObject)));
+				.setSource(buildSourceByJsonMapper(sourceObject)));
 	}
 
 	public String sendData(String jsonSource, String index, String type) {
@@ -187,11 +204,18 @@ public class JMElasticsearchClient {
 	}
 
 	public String sendDataWithObjectMapper(Object sourceObject, String index,
-			String type) throws JsonParseException, JsonMappingException,
-					JsonProcessingException, IOException {
+			String type) {
 		return sendDataToElasticsearch(prepareIndex(index, type)
-				.setSource(jsonMapper.writeValueAsString(sourceObject)))
-						.getId();
+				.setSource(buildSourceByJsonMapper(sourceObject))).getId();
+	}
+
+	private String buildSourceByJsonMapper(Object sourceObject) {
+		try {
+			return JsonMapper.writeValueAsString(sourceObject);
+		} catch (JsonProcessingException e) {
+			return JMExceptionManager.handleExceptionAndThrowRuntimeEx(log, e,
+					"buildSourceByJsonMapper", sourceObject);
+		}
 	}
 
 	private IndexResponse
@@ -202,23 +226,19 @@ public class JMElasticsearchClient {
 	private IndexResponse sendDataToElasticsearch(
 			IndexRequestBuilder indexRequestBuilder, int tryCount) {
 		try {
-			ListenableActionFuture<IndexResponse> execute =
-					indexRequestBuilder.execute();
-			return tryCount < 1 ? execute.actionGet()
-					: execute.actionGet(SENDING_TIME_OUT);
+			return indexRequestBuilder.setTTL(timeoutMillis).execute()
+					.actionGet();
 		} catch (Exception e) {
 			if (e instanceof NoNodeAvailableException) {
 				log.error(
 						"initialize elasticsearchClient !!! tryCount = {}, indexRequestBuilder = {}",
 						tryCount, indexRequestBuilder);
 				close();
-				this.elasticsearchClient =
-						initElasticsearchClient(elasticsearchSettings);
+				initClient();
 			}
-			if (++tryCount > RETRY_THRESHOLD)
+			if (++tryCount > retryCount)
 				throw new RuntimeException(
-						"sendDataToElasticsearch Failure!!! over "
-								+ RETRY_THRESHOLD
+						"sendDataToElasticsearch Failure!!! over " + retryCount
 								+ " times try, indexRequestBuilder = "
 								+ indexRequestBuilder);
 			log.warn(
@@ -234,8 +254,9 @@ public class JMElasticsearchClient {
 	}
 
 	public boolean deleteIndices(String... indices) {
-		return admin().indices().prepareDelete(indices).execute().actionGet()
-				.isAcknowledged();
+		return JMArrays.isNotNullOrEmpty(indices) ? admin().indices()
+				.prepareDelete(indices).execute().actionGet().isAcknowledged()
+				: false;
 	}
 
 	public DeleteByQueryResponse deleteAllDocs(String... indices) {
@@ -290,7 +311,7 @@ public class JMElasticsearchClient {
 			String... indices) {
 		return prepareSearch(indices)
 				.setSearchType(SearchType.DFS_QUERY_THEN_FETCH)
-				.setSize(defaultPageSize).setExplain(isSetExplain);
+				.setSize(defaultHitsCount).setExplain(isSetExplain);
 	}
 
 	public SearchRequestBuilder getSearchRequestBuilder(boolean isSetExplain,
@@ -590,23 +611,20 @@ public class JMElasticsearchClient {
 				.actionGet();
 	}
 
-	public List<String> getAllIndexList() {
-		ArrayList<String> indexList = new ArrayList<String>();
-		ObjectLookupContainer<String> keys =
-				admin().cluster().prepareState().execute().actionGet()
-						.getState().getMetaData().indices().keys();
-		for (ObjectCursor<String> objectCursor : keys)
-			indexList.add(objectCursor.value);
-		Collections.sort(indexList);
-		return indexList;
+	public Set<String> getAllIndices() {
+		try {
+			return admin().indices().stats(new IndicesStatsRequest())
+					.actionGet().getIndices().keySet();
+		} catch (ElasticsearchException e) {
+			return JMExceptionManager.handleExceptionAndReturn(log, e,
+					"getAllIndices", Collections::emptySet);
+		}
 	}
 
-	public List<String> getIndexList(String containedString) {
-		ArrayList<String> indexList = new ArrayList<String>();
-		for (String index : getAllIndexList())
-			if (index.contains(containedString))
-				indexList.add(index);
-		return indexList;
+	public Set<String> getIndexList(String containedString) {
+		return getAllIndices().stream()
+				.filter(index -> index.contains(containedString))
+				.collect(toSet());
 	}
 
 }
