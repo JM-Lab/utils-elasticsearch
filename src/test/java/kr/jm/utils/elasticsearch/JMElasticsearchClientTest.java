@@ -65,8 +65,9 @@ public class JMElasticsearchClientTest {
 		// nodeClient init
 		boolean isTransportClient = false;
 		ipPortAsCsv = "localhost:9300,127.0.0.1:9300";
+		boolean clientTransportSniff = false;
 		this.jmElasticsearchNodeClient = new JMElasticsearchClient(
-				isTransportClient, ipPortAsCsv, false);
+				isTransportClient, ipPortAsCsv, clientTransportSniff);
 
 	}
 
