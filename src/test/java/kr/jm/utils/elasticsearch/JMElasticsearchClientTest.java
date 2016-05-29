@@ -34,6 +34,9 @@ import kr.jm.utils.datastructure.JMCollections;
 import kr.jm.utils.helper.JMOptional;
 import kr.jm.utils.helper.JMThread;
 
+/**
+ * The Class JMElasticsearchClientTest.
+ */
 public class JMElasticsearchClientTest {
 
 	static {
@@ -42,25 +45,37 @@ public class JMElasticsearchClientTest {
 
 	private Node elasticsearch;
 
-	private JMElasticsearchClient jmElasticsearchNodeClient;
 	private JMElasticsearchClient jmElasticsearchClient;
+	private JMElasticsearchClient jmElasticsearchNodeClient;
 
-	int defaultPageSize = 5;
-	int retryCount = 2;
-	int timeOutSeconds = 3;
-
+	/**
+	 * Sets the up.
+	 *
+	 * @throws Exception
+	 *             the exception
+	 */
 	@Before
 	public void setUp() throws Exception {
 		this.elasticsearch = NodeBuilder.nodeBuilder().build().start();
-		// nodeClient init
-		this.jmElasticsearchNodeClient = new JMElasticsearchClient(false,
-				"localhost:9300,127.0.0.1:9300", false);
 
 		// transportClient init
-		this.jmElasticsearchClient = new JMElasticsearchClient();
-		System.out.println(jmElasticsearchClient.getSettings().getAsMap());
+		String ipPortAsCsv = "localhost:9300";
+		this.jmElasticsearchClient = new JMElasticsearchClient(ipPortAsCsv);
+
+		// nodeClient init
+		boolean isTransportClient = false;
+		ipPortAsCsv = "localhost:9300,127.0.0.1:9300";
+		this.jmElasticsearchNodeClient = new JMElasticsearchClient(
+				isTransportClient, ipPortAsCsv, false);
+
 	}
 
+	/**
+	 * Tear down.
+	 *
+	 * @throws Exception
+	 *             the exception
+	 */
 	@After
 	public void tearDown() throws Exception {
 		JMOptional.getOptional(jmElasticsearchNodeClient.getAllIndices())
@@ -70,6 +85,12 @@ public class JMElasticsearchClientTest {
 		this.elasticsearch.stop();
 	}
 
+	/**
+	 * Test get query all indices.
+	 *
+	 * @throws Exception
+	 *             the exception
+	 */
 	@Test
 	public void testGetQueryAllIndices() throws Exception {
 		Map<String, Object> sourceObject = new HashMap<String, Object>();
@@ -81,11 +102,14 @@ public class JMElasticsearchClientTest {
 			assertTrue(jmElasticsearchClient.create(index));
 		System.out.println(jmElasticsearchClient
 				.sendDataWithObjectMapper(sourceObject, index, type));
-
+		JMThread.sleep(1000);
 		assertEquals("[client-test]",
 				jmElasticsearchClient.getAllIndices().toString());
 	}
 
+	/**
+	 * Test.
+	 */
 	@Test
 	public final void test() {
 		Map<String, Object> sourceObject = new HashMap<String, Object>();
@@ -125,6 +149,9 @@ public class JMElasticsearchClientTest {
 
 	}
 
+	/**
+	 * Test index status.
+	 */
 	@Test
 	public final void testIndexStatus() {
 		Map<String, Object> sourceObject = new HashMap<String, Object>();
@@ -136,7 +163,7 @@ public class JMElasticsearchClientTest {
 		if (!jmElasticsearchClient.isExists(index))
 			assertTrue(jmElasticsearchClient.create(index));
 		jmElasticsearchClient.sendData(sourceObject, index, type);
-
+		JMThread.sleep(1000);
 		ImmutableOpenMap<String, ImmutableOpenMap<String, MappingMetaData>> mappings =
 				jmElasticsearchClient.getMappingsResponse(indices);
 		System.out.println(mappings);
@@ -146,6 +173,9 @@ public class JMElasticsearchClientTest {
 		assertEquals(type, mappings.get(index).get(type).type());
 	}
 
+	/**
+	 * Test search query all withstats aggr.
+	 */
 	@Test
 	public final void testSearchQueryAllWithstatsAggr() {
 		String index = "test-2015.05.12";
@@ -208,6 +238,9 @@ public class JMElasticsearchClientTest {
 
 	}
 
+	/**
+	 * Test get query filtered index list.
+	 */
 	@Test
 	public final void testGetQueryFilteredIndexList() {
 		Set<String> allIndexList = jmElasticsearchClient.getAllIndices();
@@ -219,6 +252,9 @@ public class JMElasticsearchClientTest {
 		System.out.println(indexList);
 	}
 
+	/**
+	 * Test delete doc query indices.
+	 */
 	@Test
 	public final void testDeleteDocQueryIndices() {
 		Set<String> allIndexList = jmElasticsearchClient.getAllIndices();
@@ -253,6 +289,9 @@ public class JMElasticsearchClientTest {
 
 	}
 
+	/**
+	 * Test send with bulk processor.
+	 */
 	@Test
 	public void testSendWithBulkProcessor() {
 		String index = "test-2015.05.12";
@@ -309,6 +348,12 @@ public class JMElasticsearchClientTest {
 		assertTrue(searchResponse1.toString().contains(test500));
 	}
 
+	/**
+	 * Test delete doc query.
+	 *
+	 * @throws Exception
+	 *             the exception
+	 */
 	@Test
 	public void testDeleteDocQuery() throws Exception {
 		String index = "test-2015.05.12";
@@ -352,6 +397,12 @@ public class JMElasticsearchClientTest {
 
 	}
 
+	/**
+	 * Test get query all id list.
+	 *
+	 * @throws Exception
+	 *             the exception
+	 */
 	@Test
 	public void testGetQueryAllIdList() throws Exception {
 		String index = "test-2015.05.12";
@@ -399,6 +450,12 @@ public class JMElasticsearchClientTest {
 
 	}
 
+	/**
+	 * Test delete doc bulk docs.
+	 *
+	 * @throws Exception
+	 *             the exception
+	 */
 	@Test
 	public void testDeleteDocBulkDocs() throws Exception {
 		String index = "test-2015.05.12";

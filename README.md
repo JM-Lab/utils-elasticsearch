@@ -1,7 +1,7 @@
 JMLab Utility Libraries For Elasticsearch Client
 ================================================
 
-Extends The Elasticsearch 1.7.5 Client
+Extends The Elasticsearch 1.7 Client
 
 ## version
 	0.1.7
@@ -28,3 +28,26 @@ Set up pom.xml :
 			<version>0.1.7</version>
 	</dependency>
     (...)
+
+For example ([JMElasticsearchClientTest.java](https://github.com/JM-Lab/utils-elasticsearch/blob/master/src/test/java/kr/jm/utils/elasticsearch/JMElasticsearchClientTest.java)) :
+
+```java
+// transportClient init
+String ipPortAsCsv = "localhost:9300";
+this.jmElasticsearchClient = new JMElasticsearchClient(ipPortAsCsv);
+		
+// nodeClient init
+boolean isTransportClient = false;
+ipPortAsCsv = "localhost:9300,127.0.0.1:9300";
+this.jmElasticsearchNodeClient =
+				new JMElasticsearchClient(isTransportClient, ipPortAsCsv);
+```
+
+## Useful Functions :
+* **Create Elasticsearch Client (Transport Or Node)**
+* **SearchQuery**
+* **SearchQueryBuilder**
+* **CountQuery**
+* **DeleteQuery**
+* **BulkProcessor**
+* **etc.**

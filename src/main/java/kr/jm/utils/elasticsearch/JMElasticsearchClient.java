@@ -28,9 +28,11 @@ import org.elasticsearch.node.NodeBuilder;
 import org.elasticsearch.search.SearchHit;
 
 import lombok.Getter;
-import lombok.Setter;
 import lombok.experimental.Delegate;
 
+/**
+ * The Class JMElasticsearchClient.
+ */
 public class JMElasticsearchClient implements Client {
 
 	private static final String LOCALHOST_9300 = "localhost:9300";
@@ -51,55 +53,114 @@ public class JMElasticsearchClient implements Client {
 	@Delegate
 	private JMElasticsearchDelete jmESDelete = new JMElasticsearchDelete(this);
 
-	private String ipPortListByComma;
+	private String ipPortAsCsv;
 	private boolean isTransportClient;
+
+	/**
+	 * Gets the settings.
+	 *
+	 * @return the settings
+	 */
+
+	/**
+	 * Gets the settings.
+	 *
+	 * @return the settings
+	 */
 	@Getter
 	private Settings settings;
 
 	@Delegate
 	private Client elasticsearchClient;
 
-	@Getter
-	@Setter
-	static long timeoutMillis = 5000;
-
+	/**
+	 * Instantiates a new JM elasticsearch client.
+	 */
 	public JMElasticsearchClient() {
 		this(true, LOCALHOST_9300, getSettingBuilderWithIgnoreClusterName());
 	}
 
+	/**
+	 * Instantiates a new JM elasticsearch client.
+	 *
+	 * @param elasticsearchClient
+	 *            the elasticsearch client
+	 */
 	public JMElasticsearchClient(Client elasticsearchClient) {
 		this.elasticsearchClient = elasticsearchClient;
 	}
 
-	public JMElasticsearchClient(String ipPortListByComma) {
-		this(true, ipPortListByComma, getSettingBuilderWithIgnoreClusterName());
+	/**
+	 * Instantiates a new JM elasticsearch client.
+	 *
+	 * @param ipPortAsCsv
+	 *            the ip port list by comma
+	 */
+	public JMElasticsearchClient(String ipPortAsCsv) {
+		this(true, ipPortAsCsv, getSettingBuilderWithIgnoreClusterName());
 	}
 
-	public JMElasticsearchClient(String ipPortListByComma,
+	/**
+	 * Instantiates a new JM elasticsearch client.
+	 *
+	 * @param ipPortAsCsv
+	 *            the ip port list by comma
+	 * @param clientTransportSniff
+	 *            the client transport sniff
+	 */
+	public JMElasticsearchClient(String ipPortAsCsv,
 			boolean clientTransportSniff) {
-		this(true, ipPortListByComma,
+		this(true, ipPortAsCsv,
 				getSettingsWithClientTransportSniff(
 						getSettingBuilderWithIgnoreClusterName(),
 						clientTransportSniff));
 	}
 
-	public JMElasticsearchClient(String ipPortListByComma,
+	/**
+	 * Instantiates a new JM elasticsearch client.
+	 *
+	 * @param ipPortAsCsv
+	 *            the ip port list by comma
+	 * @param clientTransportSniff
+	 *            the client transport sniff
+	 * @param clusterName
+	 *            the cluster name
+	 */
+	public JMElasticsearchClient(String ipPortAsCsv,
 			boolean clientTransportSniff, String clusterName) {
-		this(true, ipPortListByComma,
+		this(true, ipPortAsCsv,
 				getSettingsWithClientTransportSniff(
 						getSettingBuilderWithClusterName(clusterName),
 						clientTransportSniff));
 	}
 
+	/**
+	 * Instantiates a new JM elasticsearch client.
+	 *
+	 * @param isTransportClient
+	 *            the is transport client
+	 * @param ipPortAsCsv
+	 *            the ip port list by comma
+	 */
 	public JMElasticsearchClient(boolean isTransportClient,
-			String ipPortListByComma) {
-		this(isTransportClient, ipPortListByComma,
+			String ipPortAsCsv) {
+		this(isTransportClient, ipPortAsCsv,
 				getSettingBuilderWithIgnoreClusterName());
 	}
 
-	public JMElasticsearchClient(boolean isTransportClient,
-			String ipPortListByComma, boolean clientTransportSniff) {
-		this(true, ipPortListByComma,
+	/**
+	 * Instantiates a new JM elasticsearch client.
+	 *
+	 * @param isTransportClient
+	 *            the is transport client
+	 * @param ipPortAsCsv
+	 *            the ip port list by comma
+	 * @param clientTransportSniff
+	 *            the client transport sniff
+	 */
+	public JMElasticsearchClient(boolean isTransportClient, String ipPortAsCsv,
+			boolean clientTransportSniff) {
+		this(true, ipPortAsCsv,
 				getSettingsWithClientTransportSniff(
 						getSettingBuilderWithIgnoreClusterName(),
 						clientTransportSniff));
@@ -110,29 +171,61 @@ public class JMElasticsearchClient implements Client {
 				.put(CLIENT_TRANSPORT_IGNORE_CLUSTER_NAME, true).build();
 	}
 
-	public JMElasticsearchClient(boolean isTransportClient,
-			String ipPortListByComma, String clusterName) {
-		this(isTransportClient, ipPortListByComma,
+	/**
+	 * Instantiates a new JM elasticsearch client.
+	 *
+	 * @param isTransportClient
+	 *            the is transport client
+	 * @param ipPortAsCsv
+	 *            the ip port list by comma
+	 * @param clusterName
+	 *            the cluster name
+	 */
+	public JMElasticsearchClient(boolean isTransportClient, String ipPortAsCsv,
+			String clusterName) {
+		this(isTransportClient, ipPortAsCsv,
 				getSettingBuilderWithClusterName(clusterName));
 	}
 
-	public JMElasticsearchClient(boolean isTransportClient,
-			String ipPortListByComma, boolean clientTransportSniff,
-			String clusterName) {
-		this(isTransportClient, ipPortListByComma,
+	/**
+	 * Instantiates a new JM elasticsearch client.
+	 *
+	 * @param isTransportClient
+	 *            the is transport client
+	 * @param ipPortAsCsv
+	 *            the ip port list by comma
+	 * @param clientTransportSniff
+	 *            the client transport sniff
+	 * @param clusterName
+	 *            the cluster name
+	 */
+	public JMElasticsearchClient(boolean isTransportClient, String ipPortAsCsv,
+			boolean clientTransportSniff, String clusterName) {
+		this(isTransportClient, ipPortAsCsv,
 				getSettingsWithClientTransportSniff(
 						getSettingBuilderWithClusterName(clusterName),
 						clientTransportSniff));
 	}
 
-	public JMElasticsearchClient(boolean isTransportClient,
-			String ipPortListByComma, Settings settings) {
+	/**
+	 * Instantiates a new JM elasticsearch client.
+	 *
+	 * @param isTransportClient
+	 *            the is transport client
+	 * @param ipPortAsCsv
+	 *            the ip port list by comma
+	 * @param settings
+	 *            the settings
+	 */
+	public JMElasticsearchClient(boolean isTransportClient, String ipPortAsCsv,
+			Settings settings) {
 		this.isTransportClient = isTransportClient;
-		this.ipPortListByComma = ipPortListByComma;
-		this.settings = isTransportClient ? settings
-				: ImmutableSettings.settingsBuilder()
-						.put(NETWORK_HOST, ipPortListByComma).put(settings)
-						.build();
+		this.ipPortAsCsv = ipPortAsCsv;
+		this.settings =
+				isTransportClient ? settings
+						: ImmutableSettings.settingsBuilder()
+								.put(NETWORK_HOST, ipPortAsCsv).put(settings)
+								.build();
 		this.elasticsearchClient = initClient();
 	}
 
@@ -156,7 +249,7 @@ public class JMElasticsearchClient implements Client {
 
 	private Client buildTransportClient() {
 		TransportClient transportClient = new TransportClient(settings);
-		for (String ipPort : ipPortListByComma.split(",")) {
+		for (String ipPort : ipPortAsCsv.split(",")) {
 			String[] seperatedIpPort = ipPort.split(":");
 			transportClient.addTransportAddress(new InetSocketTransportAddress(
 					seperatedIpPort[0], Integer.parseInt(seperatedIpPort[1])));
@@ -169,6 +262,13 @@ public class JMElasticsearchClient implements Client {
 				.client(true).build().client();
 	}
 
+	/**
+	 * Checks if is exists.
+	 *
+	 * @param index
+	 *            the index
+	 * @return true, if is exists
+	 */
 	public boolean isExists(String index) {
 		IndicesExistsRequestBuilder indicesExistsRequestBuilder =
 				admin().indices().prepareExists(index);
@@ -178,6 +278,13 @@ public class JMElasticsearchClient implements Client {
 				.isExists();
 	}
 
+	/**
+	 * Creates the.
+	 *
+	 * @param index
+	 *            the index
+	 * @return true, if successful
+	 */
 	public boolean create(String index) {
 		CreateIndexRequestBuilder createIndexRequestBuilder =
 				admin().indices().prepareCreate(index);
@@ -186,15 +293,38 @@ public class JMElasticsearchClient implements Client {
 				.isAcknowledged();
 	}
 
+	/**
+	 * Extract id list.
+	 *
+	 * @param searchResponse
+	 *            the search response
+	 * @return the list
+	 */
 	public List<String> extractIdList(SearchResponse searchResponse) {
 		return Arrays.stream(searchResponse.getHits().hits())
 				.map(SearchHit::getId).collect(toList());
 	}
 
+	/**
+	 * Gets the all id list.
+	 *
+	 * @param index
+	 *            the index
+	 * @param type
+	 *            the type
+	 * @return the all id list
+	 */
 	public List<String> getAllIdList(String index, String type) {
 		return extractIdList(searchAllWithField(index, type, "_id"));
 	}
 
+	/**
+	 * Gets the mappings response.
+	 *
+	 * @param indices
+	 *            the indices
+	 * @return the mappings response
+	 */
 	public ImmutableOpenMap<String, ImmutableOpenMap<String, MappingMetaData>>
 			getMappingsResponse(String... indices) {
 		GetMappingsRequestBuilder getMappingsRequestBuilder =
@@ -204,6 +334,11 @@ public class JMElasticsearchClient implements Client {
 				.getMappings();
 	}
 
+	/**
+	 * Gets the all indices stats.
+	 *
+	 * @return the all indices stats
+	 */
 	public Map<String, IndexStats> getAllIndicesStats() {
 		IndicesStatsRequestBuilder indicesStatsRequestBuilder =
 				admin().indices().prepareStats().all();
@@ -212,21 +347,47 @@ public class JMElasticsearchClient implements Client {
 				indicesStatsRequestBuilder.execute()).getIndices();
 	}
 
+	/**
+	 * Gets the all indices.
+	 *
+	 * @return the all indices
+	 */
 	public Set<String> getAllIndices() {
 		return getAllIndicesStats().keySet();
 	}
 
+	/**
+	 * Gets the filtered index list.
+	 *
+	 * @param containedString
+	 *            the contained string
+	 * @return the filtered index list
+	 */
 	public List<String> getFilteredIndexList(String containedString) {
 		return getAllIndices().stream()
 				.filter(index -> index.contains(containedString))
 				.collect(toList());
 	}
 
+	/**
+	 * Gets the query.
+	 *
+	 * @param getRequestBuilder
+	 *            the get request builder
+	 * @return the query
+	 */
 	public GetResponse getQuery(GetRequestBuilder getRequestBuilder) {
 		return JMElastricsearchUtil.logExcuteAndReturn("getQuery",
 				getRequestBuilder, getRequestBuilder.execute());
 	}
 
+	/**
+	 * Update query.
+	 *
+	 * @param updateRequestBuilder
+	 *            the update request builder
+	 * @return the update response
+	 */
 	public UpdateResponse
 			updateQuery(UpdateRequestBuilder updateRequestBuilder) {
 		return JMElastricsearchUtil.logExcuteAndReturn("updateQuery",
