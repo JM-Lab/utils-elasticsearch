@@ -32,6 +32,8 @@ Set up pom.xml :
 For example ([JMElasticsearchClientTest.java](https://github.com/JM-Lab/utils-elasticsearch/blob/master/src/test/java/kr/jm/utils/elasticsearch/JMElasticsearchClientTest.java)) :
 
 ```java
+this.elasticsearch = NodeBuilder.nodeBuilder().build().start();
+
 // transportClient init
 String ipPortAsCsv = "localhost:9300";
 this.jmElasticsearchClient = new JMElasticsearchClient(ipPortAsCsv);
