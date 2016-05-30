@@ -6,9 +6,11 @@ import static kr.jm.utils.helper.JMPredicate.peek;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 
 import org.elasticsearch.action.ActionListener;
 import org.elasticsearch.action.bulk.BulkProcessor;
+import org.elasticsearch.action.bulk.BulkProcessor.Builder;
 import org.elasticsearch.action.bulk.BulkProcessor.Listener;
 import org.elasticsearch.action.bulk.BulkRequest;
 import org.elasticsearch.action.bulk.BulkRequestBuilder;
@@ -16,6 +18,7 @@ import org.elasticsearch.action.bulk.BulkResponse;
 import org.elasticsearch.action.delete.DeleteRequestBuilder;
 import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.action.index.IndexRequestBuilder;
+import org.elasticsearch.common.unit.ByteSizeUnit;
 import org.elasticsearch.common.unit.ByteSizeValue;
 import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.index.query.FilterBuilder;
@@ -90,6 +93,24 @@ class JMElasticsearchBulk {
 	/**
 	 * Sets the bulk processor.
 	 *
+	 * @param bulkActions
+	 *            the bulk actions
+	 * @param bulkSize
+	 *            the bulk size
+	 * @param flushInterval
+	 *            the flush interval
+	 * @param concurrentRequests
+	 *            the concurrent requests
+	 */
+	public void setBulkProcessor(int bulkActions, int bulkMBytesSize,
+			int flushIntervalSeconds) {
+		setBulkProcessor(this.bulkProcessorListener, bulkActions,
+				bulkMBytesSize, flushIntervalSeconds);
+	}
+
+	/**
+	 * Sets the bulk processor.
+	 *
 	 * @param bulkProcessorListener
 	 *            the bulk processor listener
 	 * @param bulkActions
@@ -102,28 +123,9 @@ class JMElasticsearchBulk {
 	 *            the concurrent requests
 	 */
 	public void setBulkProcessor(Listener bulkProcessorListener,
-			int bulkActions, ByteSizeValue bulkSize, TimeValue flushInterval,
-			int concurrentRequests) {
+			int bulkActions, int bulkMBytesSize, int flushIntervalSeconds) {
 		this.bulkProcessor = buildBulkProcessor(bulkProcessorListener,
-				bulkActions, bulkSize, flushInterval, concurrentRequests);
-	}
-
-	/**
-	 * Sets the bulk processor.
-	 *
-	 * @param bulkActions
-	 *            the bulk actions
-	 * @param bulkSize
-	 *            the bulk size
-	 * @param flushInterval
-	 *            the flush interval
-	 * @param concurrentRequests
-	 *            the concurrent requests
-	 */
-	public void setBulkProcessor(int bulkActions, ByteSizeValue bulkSize,
-			TimeValue flushInterval, int concurrentRequests) {
-		this.bulkProcessor = buildBulkProcessor(this.bulkProcessorListener,
-				bulkActions, bulkSize, flushInterval, concurrentRequests);
+				bulkActions, bulkMBytesSize, flushIntervalSeconds);
 	}
 
 	/**
@@ -142,12 +144,73 @@ class JMElasticsearchBulk {
 	 * @return the bulk processor
 	 */
 	public BulkProcessor buildBulkProcessor(Listener bulkProcessorListener,
-			int bulkActions, ByteSizeValue bulkSize, TimeValue flushInterval,
-			int concurrentRequests) {
-		return BulkProcessor.builder(jmESClient, bulkProcessorListener)
-				.setBulkActions(bulkActions).setBulkSize(bulkSize)
-				.setFlushInterval(flushInterval)
-				.setConcurrentRequests(concurrentRequests).build();
+			int bulkActions, int bulkMBytesSize, int flushIntervalSeconds) {
+		Builder builder = BulkProcessor
+				.builder(jmESClient, bulkProcessorListener)
+				.setBulkActions(bulkActions < 1 ? -1 : bulkActions)
+				.setBulkSize(bulkMBytesSize < 1 ? new ByteSizeValue(-1)
+						: new ByteSizeValue(bulkMBytesSize, ByteSizeUnit.MB));
+		if (flushIntervalSeconds > 0)
+			builder.setFlushInterval(
+					new TimeValue(flushIntervalSeconds, TimeUnit.SECONDS));
+		return builder.build();
+	}
+
+	/**
+	 * Send with bulk processor.
+	 *
+	 * @param bulkSource
+	 *            the bulk source
+	 * @param index
+	 *            the index
+	 * @param type
+	 *            the type
+	 */
+	public void sendWithBulkProcessor(List<Map<String, Object>> bulkSource,
+			String index, String type) {
+		sendWithBulkProcessor(bulkSource.stream()
+				.map(source -> new IndexRequest(index, type).source(source))
+				.collect(toList()));
+	}
+
+	/**
+	 * Send with bulk processor and object mapper.
+	 *
+	 * @param bulkObject
+	 *            the bulk object
+	 * @param index
+	 *            the index
+	 * @param type
+	 *            the type
+	 */
+	public void sendWithBulkProcessorAndObjectMapper(List<Object> bulkObject,
+			String index, String type) {
+		sendWithBulkProcessor(bulkObject.stream()
+				.map(sourceObject -> new IndexRequest(index, type)
+						.source(JMElastricsearchUtil
+								.buildSourceByJsonMapper(sourceObject)))
+				.collect(toList()));
+	}
+
+	/**
+	 * Send with bulk processor.
+	 *
+	 * @param indexRequestList
+	 *            the index request list
+	 */
+	public void sendWithBulkProcessor(List<IndexRequest> indexRequestList) {
+		BulkProcessor bulkProcessor = Optional.ofNullable(this.bulkProcessor)
+				.orElseGet(() -> setAndReturnBulkProcessor(BulkProcessor
+						.builder(jmESClient, bulkProcessorListener).build()));
+		indexRequestList.forEach(bulkProcessor::add);
+	}
+
+	/**
+	 * Close bulk processor.
+	 */
+	public void closeBulkProcessor() {
+		Optional.ofNullable(bulkProcessor).filter(peek(BulkProcessor::flush))
+				.ifPresent(BulkProcessor::close);
 	}
 
 	/**
@@ -315,63 +378,6 @@ class JMElasticsearchBulk {
 	public BulkResponse
 			excuteBulkRequest(BulkRequestBuilder bulkRequestBuilder) {
 		return bulkRequestBuilder.execute().actionGet();
-	}
-
-	/**
-	 * Send with bulk processor.
-	 *
-	 * @param bulkSource
-	 *            the bulk source
-	 * @param index
-	 *            the index
-	 * @param type
-	 *            the type
-	 */
-	public void sendWithBulkProcessor(List<Map<String, Object>> bulkSource,
-			String index, String type) {
-		sendWithBulkProcessor(bulkSource.stream()
-				.map(source -> new IndexRequest(index, type).source(source))
-				.collect(toList()));
-	}
-
-	/**
-	 * Send with bulk processor and object mapper.
-	 *
-	 * @param bulkObject
-	 *            the bulk object
-	 * @param index
-	 *            the index
-	 * @param type
-	 *            the type
-	 */
-	public void sendWithBulkProcessorAndObjectMapper(List<Object> bulkObject,
-			String index, String type) {
-		sendWithBulkProcessor(bulkObject.stream()
-				.map(sourceObject -> new IndexRequest(index, type)
-						.source(JMElastricsearchUtil
-								.buildSourceByJsonMapper(sourceObject)))
-				.collect(toList()));
-	}
-
-	/**
-	 * Send with bulk processor.
-	 *
-	 * @param indexRequestList
-	 *            the index request list
-	 */
-	public void sendWithBulkProcessor(List<IndexRequest> indexRequestList) {
-		BulkProcessor bulkProcessor = Optional.ofNullable(this.bulkProcessor)
-				.orElseGet(() -> setAndReturnBulkProcessor(BulkProcessor
-						.builder(jmESClient, bulkProcessorListener).build()));
-		indexRequestList.forEach(bulkProcessor::add);
-	}
-
-	/**
-	 * Close bulk processor.
-	 */
-	public void closeBulkProcessor() {
-		Optional.ofNullable(bulkProcessor).filter(peek(BulkProcessor::flush))
-				.ifPresent(BulkProcessor::close);
 	}
 
 	/**

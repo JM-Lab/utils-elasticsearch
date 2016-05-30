@@ -15,9 +15,6 @@ import org.elasticsearch.action.bulk.BulkResponse;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.cluster.metadata.MappingMetaData;
 import org.elasticsearch.common.collect.ImmutableOpenMap;
-import org.elasticsearch.common.unit.ByteSizeUnit;
-import org.elasticsearch.common.unit.ByteSizeValue;
-import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.index.query.FilterBuilder;
 import org.elasticsearch.index.query.FilterBuilders;
 import org.elasticsearch.index.query.RangeFilterBuilder;
@@ -56,6 +53,7 @@ public class JMElasticsearchClientTest {
 	 */
 	@Before
 	public void setUp() throws Exception {
+		// Elasticsearch local data node start
 		this.elasticsearch = NodeBuilder.nodeBuilder().build().start();
 
 		// transportClient init
@@ -82,7 +80,8 @@ public class JMElasticsearchClientTest {
 		JMOptional.getOptional(jmElasticsearchNodeClient.getAllIndices())
 				.ifPresent(indices -> jmElasticsearchNodeClient.deleteIndices(
 						indices.toArray(new String[indices.size()])));
-		JMThread.sleep(1000);
+		while (jmElasticsearchClient.getAllIndices().size() > 0)
+			JMThread.sleep(1000);
 		this.elasticsearch.stop();
 	}
 
@@ -320,13 +319,18 @@ public class JMElasticsearchClientTest {
 		sourceObject3.put(test400, 400);
 		sourceObject3.put(test500, 500);
 
-		jmElasticsearchClient.setBulkProcessor(3,
-				new ByteSizeValue(100, ByteSizeUnit.KB), new TimeValue(5000),
-				1);
+		// set to -1 to disable it
+		int bulkActions = 3;
+		// set to -1 to disable it
+		int bulkMBytesSize = -1;
+		int flushIntervalSeconds = 5;
+		jmElasticsearchClient.setBulkProcessor(bulkActions, bulkMBytesSize,
+				flushIntervalSeconds);
 
 		jmElasticsearchClient.sendWithBulkProcessor(
 				JMCollections.buildList(sourceObject, sourceObject2), index,
 				type);
+
 		Set<String> allIndexList = jmElasticsearchClient.getAllIndices();
 		System.out.println(allIndexList);
 		assertEquals("[]", allIndexList.toString());
@@ -429,9 +433,13 @@ public class JMElasticsearchClientTest {
 		sourceObject3.put(test400, 400);
 		sourceObject3.put(test500, 500);
 
-		jmElasticsearchClient.setBulkProcessor(3,
-				new ByteSizeValue(100, ByteSizeUnit.KB), new TimeValue(5000),
-				1);
+		// set to -1 to disable it
+		int bulkActions = 3;
+		// set to -1 to disable it
+		int bulkMBytesSize = -1;
+		int flushIntervalSeconds = 5;
+		jmElasticsearchClient.setBulkProcessor(bulkActions, bulkMBytesSize,
+				flushIntervalSeconds);
 
 		jmElasticsearchClient.sendWithBulkProcessor(JMCollections.buildList(
 				sourceObject, sourceObject2, sourceObject3), index, type);
@@ -482,9 +490,13 @@ public class JMElasticsearchClientTest {
 		sourceObject3.put(test400, 400);
 		sourceObject3.put(test500, 500);
 
-		jmElasticsearchClient.setBulkProcessor(3,
-				new ByteSizeValue(100, ByteSizeUnit.KB), new TimeValue(5000),
-				1);
+		// set to -1 to disable it
+		int bulkActions = 3;
+		// set to -1 to disable it
+		int bulkMBytesSize = -1;
+		int flushIntervalSeconds = 5;
+		jmElasticsearchClient.setBulkProcessor(bulkActions, bulkMBytesSize,
+				flushIntervalSeconds);
 
 		jmElasticsearchClient.sendWithBulkProcessor(JMCollections.buildList(
 				sourceObject, sourceObject2, sourceObject3), index, type);

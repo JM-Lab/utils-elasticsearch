@@ -32,6 +32,7 @@ Set up pom.xml :
 For example ([JMElasticsearchClientTest.java](https://github.com/JM-Lab/utils-elasticsearch/blob/master/src/test/java/kr/jm/utils/elasticsearch/JMElasticsearchClientTest.java)) :
 
 ```java
+// Elasticsearch local data node start
 this.elasticsearch = NodeBuilder.nodeBuilder().build().start();
 
 // transportClient init
