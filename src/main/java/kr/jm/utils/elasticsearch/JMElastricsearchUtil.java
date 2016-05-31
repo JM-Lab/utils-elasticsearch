@@ -18,7 +18,20 @@ class JMElastricsearchUtil {
 	 *
 	 * @return the timeout millis
 	 */
+
+	/**
+	 * Gets the timeout millis.
+	 *
+	 * @return the timeout millis
+	 */
 	@Getter
+
+	/**
+	 * Sets the timeout millis.
+	 *
+	 * @param timeoutMillis
+	 *            the new timeout millis
+	 */
 
 	/**
 	 * Sets the timeout millis.

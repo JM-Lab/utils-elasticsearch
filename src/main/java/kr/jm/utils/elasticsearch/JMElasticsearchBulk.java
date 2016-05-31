@@ -18,7 +18,6 @@ import org.elasticsearch.action.bulk.BulkResponse;
 import org.elasticsearch.action.delete.DeleteRequestBuilder;
 import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.action.index.IndexRequestBuilder;
-import org.elasticsearch.common.unit.ByteSizeUnit;
 import org.elasticsearch.common.unit.ByteSizeValue;
 import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.index.query.FilterBuilder;
@@ -97,15 +96,13 @@ class JMElasticsearchBulk {
 	 *            the bulk actions
 	 * @param bulkSize
 	 *            the bulk size
-	 * @param flushInterval
-	 *            the flush interval
-	 * @param concurrentRequests
-	 *            the concurrent requests
+	 * @param flushIntervalSeconds
+	 *            the flush interval seconds
 	 */
-	public void setBulkProcessor(int bulkActions, int bulkMBytesSize,
+	public void setBulkProcessor(int bulkActions, String bulkSize,
 			int flushIntervalSeconds) {
-		setBulkProcessor(this.bulkProcessorListener, bulkActions,
-				bulkMBytesSize, flushIntervalSeconds);
+		setBulkProcessor(this.bulkProcessorListener, bulkActions, bulkSize,
+				flushIntervalSeconds);
 	}
 
 	/**
@@ -117,15 +114,13 @@ class JMElasticsearchBulk {
 	 *            the bulk actions
 	 * @param bulkSize
 	 *            the bulk size
-	 * @param flushInterval
-	 *            the flush interval
-	 * @param concurrentRequests
-	 *            the concurrent requests
+	 * @param flushIntervalSeconds
+	 *            the flush interval seconds
 	 */
 	public void setBulkProcessor(Listener bulkProcessorListener,
-			int bulkActions, int bulkMBytesSize, int flushIntervalSeconds) {
+			int bulkActions, String bulkSize, int flushIntervalSeconds) {
 		this.bulkProcessor = buildBulkProcessor(bulkProcessorListener,
-				bulkActions, bulkMBytesSize, flushIntervalSeconds);
+				bulkActions, bulkSize, flushIntervalSeconds);
 	}
 
 	/**
@@ -137,19 +132,16 @@ class JMElasticsearchBulk {
 	 *            the bulk actions
 	 * @param bulkSize
 	 *            the bulk size
-	 * @param flushInterval
-	 *            the flush interval
-	 * @param concurrentRequests
-	 *            the concurrent requests
+	 * @param flushIntervalSeconds
+	 *            the flush interval seconds
 	 * @return the bulk processor
 	 */
 	public BulkProcessor buildBulkProcessor(Listener bulkProcessorListener,
-			int bulkActions, int bulkMBytesSize, int flushIntervalSeconds) {
+			int bulkActions, String bulkSize, int flushIntervalSeconds) {
 		Builder builder = BulkProcessor
 				.builder(jmESClient, bulkProcessorListener)
 				.setBulkActions(bulkActions < 1 ? -1 : bulkActions)
-				.setBulkSize(bulkMBytesSize < 1 ? new ByteSizeValue(-1)
-						: new ByteSizeValue(bulkMBytesSize, ByteSizeUnit.MB));
+				.setBulkSize(ByteSizeValue.parseBytesSizeValue(bulkSize));
 		if (flushIntervalSeconds > 0)
 			builder.setFlushInterval(
 					new TimeValue(flushIntervalSeconds, TimeUnit.SECONDS));

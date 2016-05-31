@@ -44,6 +44,13 @@ boolean isTransportClient = false;
 ipPortAsCsv = "localhost:9300,127.0.0.1:9300";
 boolean clientTransportSniff = false;
 this.jmElasticsearchNodeClient = new JMElasticsearchClient(isTransportClient, ipPortAsCsv, clientTransportSniff);
+
+// set to -1 to disable it
+int bulkActions = 3;
+// set to -1 to disable it, ex) 100KB, 1m, 1gb or 1g ...
+String bulkSize = "1MB";
+int flushIntervalSeconds = 5;
+this.jmElasticsearchClient.setBulkProcessor(bulkActions, bulkSize, flushIntervalSeconds);
 ```
 
 ## Useful Functions :

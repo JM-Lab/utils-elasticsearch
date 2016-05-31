@@ -32,7 +32,20 @@ public class JMElasticsearchSearchAndCount {
 	 *
 	 * @return the default hits count
 	 */
+
+	/**
+	 * Gets the default hits count.
+	 *
+	 * @return the default hits count
+	 */
 	@Getter
+
+	/**
+	 * Sets the default hits count.
+	 *
+	 * @param defaultHitsCount
+	 *            the new default hits count
+	 */
 
 	/**
 	 * Sets the default hits count.

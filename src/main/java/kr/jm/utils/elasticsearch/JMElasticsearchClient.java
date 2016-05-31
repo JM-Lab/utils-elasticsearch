@@ -67,6 +67,12 @@ public class JMElasticsearchClient implements Client {
 	 *
 	 * @return the settings
 	 */
+
+	/**
+	 * Gets the settings.
+	 *
+	 * @return the settings
+	 */
 	@Getter
 	private Settings settings;
 

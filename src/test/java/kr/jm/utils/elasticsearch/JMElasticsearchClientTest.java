@@ -67,6 +67,14 @@ public class JMElasticsearchClientTest {
 		this.jmElasticsearchNodeClient = new JMElasticsearchClient(
 				isTransportClient, ipPortAsCsv, clientTransportSniff);
 
+		// set to -1 to disable it
+		int bulkActions = 3;
+		// set to -1 to disable it, ex) 100KB, 1m, 1gb or 1g ...
+		String bulkSize = "1MB";
+		int flushIntervalSeconds = 5;
+		this.jmElasticsearchClient.setBulkProcessor(bulkActions, bulkSize,
+				flushIntervalSeconds);
+
 	}
 
 	/**
@@ -319,14 +327,6 @@ public class JMElasticsearchClientTest {
 		sourceObject3.put(test400, 400);
 		sourceObject3.put(test500, 500);
 
-		// set to -1 to disable it
-		int bulkActions = 3;
-		// set to -1 to disable it
-		int bulkMBytesSize = -1;
-		int flushIntervalSeconds = 5;
-		jmElasticsearchClient.setBulkProcessor(bulkActions, bulkMBytesSize,
-				flushIntervalSeconds);
-
 		jmElasticsearchClient.sendWithBulkProcessor(
 				JMCollections.buildList(sourceObject, sourceObject2), index,
 				type);
@@ -433,14 +433,6 @@ public class JMElasticsearchClientTest {
 		sourceObject3.put(test400, 400);
 		sourceObject3.put(test500, 500);
 
-		// set to -1 to disable it
-		int bulkActions = 3;
-		// set to -1 to disable it
-		int bulkMBytesSize = -1;
-		int flushIntervalSeconds = 5;
-		jmElasticsearchClient.setBulkProcessor(bulkActions, bulkMBytesSize,
-				flushIntervalSeconds);
-
 		jmElasticsearchClient.sendWithBulkProcessor(JMCollections.buildList(
 				sourceObject, sourceObject2, sourceObject3), index, type);
 		JMThread.sleep(3000);
@@ -489,14 +481,6 @@ public class JMElasticsearchClientTest {
 		sourceObject3.put(test30, 30);
 		sourceObject3.put(test400, 400);
 		sourceObject3.put(test500, 500);
-
-		// set to -1 to disable it
-		int bulkActions = 3;
-		// set to -1 to disable it
-		int bulkMBytesSize = -1;
-		int flushIntervalSeconds = 5;
-		jmElasticsearchClient.setBulkProcessor(bulkActions, bulkMBytesSize,
-				flushIntervalSeconds);
 
 		jmElasticsearchClient.sendWithBulkProcessor(JMCollections.buildList(
 				sourceObject, sourceObject2, sourceObject3), index, type);
