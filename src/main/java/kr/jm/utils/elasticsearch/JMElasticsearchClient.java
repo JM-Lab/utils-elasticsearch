@@ -69,7 +69,7 @@ public class JMElasticsearchClient implements Client {
 	/**
 	 * Instantiates a new JM elasticsearch client.
 	 *
-	 * @param esClient
+	 * @param elasticsearchClient
 	 *            the elasticsearch client
 	 */
 	public JMElasticsearchClient(Client elasticsearchClient) {
@@ -88,7 +88,7 @@ public class JMElasticsearchClient implements Client {
 	 * Instantiates a new JM elasticsearch client.
 	 *
 	 * @param ipPortAsCsv
-	 *            the ip port list by comma
+	 *            the ip port as csv
 	 */
 	public JMElasticsearchClient(String ipPortAsCsv) {
 		this(true, ipPortAsCsv, getSettingBuilderWithIgnoreClusterName());
@@ -98,7 +98,7 @@ public class JMElasticsearchClient implements Client {
 	 * Instantiates a new JM elasticsearch client.
 	 *
 	 * @param ipPortAsCsv
-	 *            the ip port list by comma
+	 *            the ip port as csv
 	 * @param clientTransportSniff
 	 *            the client transport sniff
 	 */
@@ -114,7 +114,7 @@ public class JMElasticsearchClient implements Client {
 	 * Instantiates a new JM elasticsearch client.
 	 *
 	 * @param ipPortAsCsv
-	 *            the ip port list by comma
+	 *            the ip port as csv
 	 * @param clientTransportSniff
 	 *            the client transport sniff
 	 * @param clusterName
@@ -134,7 +134,7 @@ public class JMElasticsearchClient implements Client {
 	 * @param isTransportClient
 	 *            the is transport client
 	 * @param ipPortAsCsv
-	 *            the ip port list by comma
+	 *            the ip port as csv
 	 */
 	public JMElasticsearchClient(boolean isTransportClient,
 			String ipPortAsCsv) {
@@ -148,7 +148,7 @@ public class JMElasticsearchClient implements Client {
 	 * @param isTransportClient
 	 *            the is transport client
 	 * @param ipPortAsCsv
-	 *            the ip port list by comma
+	 *            the ip port as csv
 	 * @param clientTransportSniff
 	 *            the client transport sniff
 	 */
@@ -171,7 +171,7 @@ public class JMElasticsearchClient implements Client {
 	 * @param isTransportClient
 	 *            the is transport client
 	 * @param ipPortAsCsv
-	 *            the ip port list by comma
+	 *            the ip port as csv
 	 * @param clusterName
 	 *            the cluster name
 	 */
@@ -187,7 +187,7 @@ public class JMElasticsearchClient implements Client {
 	 * @param isTransportClient
 	 *            the is transport client
 	 * @param ipPortAsCsv
-	 *            the ip port list by comma
+	 *            the ip port as csv
 	 * @param clientTransportSniff
 	 *            the client transport sniff
 	 * @param clusterName
@@ -207,7 +207,7 @@ public class JMElasticsearchClient implements Client {
 	 * @param isTransportClient
 	 *            the is transport client
 	 * @param ipPortAsCsv
-	 *            the ip port list by comma
+	 *            the ip port as csv
 	 * @param settings
 	 *            the settings
 	 */
