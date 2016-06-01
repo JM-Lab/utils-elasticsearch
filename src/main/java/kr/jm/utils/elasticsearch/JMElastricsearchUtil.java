@@ -13,32 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 class JMElastricsearchUtil {
 
-	/**
-	 * Gets the timeout millis.
-	 *
-	 * @return the timeout millis
-	 */
-
-	/**
-	 * Gets the timeout millis.
-	 *
-	 * @return the timeout millis
-	 */
 	@Getter
-
-	/**
-	 * Sets the timeout millis.
-	 *
-	 * @param timeoutMillis
-	 *            the new timeout millis
-	 */
-
-	/**
-	 * Sets the timeout millis.
-	 *
-	 * @param timeoutMillis
-	 *            the new timeout millis
-	 */
 	@Setter
 	private static long timeoutMillis = 5000;
 

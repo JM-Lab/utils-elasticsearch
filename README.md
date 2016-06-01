@@ -23,7 +23,7 @@ Set up pom.xml :
 
     (...)
     <dependency>
-			<groupId>jmlab</groupId>
+			<groupId>com.github.jm-lab</groupId>
 			<artifactId>jmlab-utils-elasticsearch</artifactId>
 			<version>0.1.7</version>
 	</dependency>

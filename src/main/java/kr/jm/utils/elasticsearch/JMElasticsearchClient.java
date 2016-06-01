@@ -43,41 +43,21 @@ public class JMElasticsearchClient implements Client {
 	private static final String CLIENT_TRANSPORT_SNIFF =
 			"client.transport.sniff";
 
-	@Delegate
-	private JMElasticsearchBulk jmESBulk = new JMElasticsearchBulk(this);
-	@Delegate
-	private JMElasticsearchIndex jmESIndex = new JMElasticsearchIndex(this);
-	@Delegate
-	private JMElasticsearchSearchAndCount jmESSearchAndCount =
-			new JMElasticsearchSearchAndCount(this);
-	@Delegate
-	private JMElasticsearchDelete jmESDelete = new JMElasticsearchDelete(this);
-
 	private String ipPortAsCsv;
 	private boolean isTransportClient;
 
-	/**
-	 * Gets the settings.
-	 *
-	 * @return the settings
-	 */
-
-	/**
-	 * Gets the settings.
-	 *
-	 * @return the settings
-	 */
-
-	/**
-	 * Gets the settings.
-	 *
-	 * @return the settings
-	 */
 	@Getter
 	private Settings settings;
-
 	@Delegate
-	private Client elasticsearchClient;
+	private Client esClient;
+	@Delegate
+	private JMElasticsearchBulk jmESBulk;
+	@Delegate
+	private JMElasticsearchIndex jmESIndex;
+	@Delegate
+	private JMElasticsearchSearchAndCount jmESSearchAndCount;
+	@Delegate
+	private JMElasticsearchDelete jmESDelete;
 
 	/**
 	 * Instantiates a new JM elasticsearch client.
@@ -89,11 +69,19 @@ public class JMElasticsearchClient implements Client {
 	/**
 	 * Instantiates a new JM elasticsearch client.
 	 *
-	 * @param elasticsearchClient
+	 * @param esClient
 	 *            the elasticsearch client
 	 */
 	public JMElasticsearchClient(Client elasticsearchClient) {
-		this.elasticsearchClient = elasticsearchClient;
+		initElasticsearchClient(elasticsearchClient);
+	}
+
+	private void initElasticsearchClient(Client elasticsearchClient) {
+		this.esClient = elasticsearchClient;
+		this.jmESBulk = new JMElasticsearchBulk(this);
+		this.jmESIndex = new JMElasticsearchIndex(this);
+		this.jmESSearchAndCount = new JMElasticsearchSearchAndCount(this);
+		this.jmESDelete = new JMElasticsearchDelete(this);
 	}
 
 	/**
@@ -232,7 +220,7 @@ public class JMElasticsearchClient implements Client {
 						: ImmutableSettings.settingsBuilder()
 								.put(NETWORK_HOST, ipPortAsCsv).put(settings)
 								.build();
-		this.elasticsearchClient = initClient();
+		initElasticsearchClient(buildClient());
 	}
 
 	private static Settings
@@ -248,7 +236,7 @@ public class JMElasticsearchClient implements Client {
 				.build();
 	}
 
-	private Client initClient() {
+	private Client buildClient() {
 		return this.isTransportClient ? buildTransportClient()
 				: buildNodeClient();
 	}
