@@ -4,7 +4,7 @@ JMLab Utility Libraries For Elasticsearch Client
 Extends The Elasticsearch 1.7 Client
 
 ## version
-[![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.github.jm-lab/jmlab-utils-elasticsearch/badge.svg)](http://search.maven.org/#artifactdetails%7Ccom.github.jm-lab%7Cjmlab-utils-elasticsearch8%7C0.1.82%7Cjar)
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.github.jm-lab/jmlab-utils-elasticsearch/badge.svg)](http://search.maven.org/#artifactdetails%7Ccom.github.jm-lab%7Cjmlab-utils-elasticsearch8%7C0.1.7%7Cjar)
 
 ## Prerequisites:
 * Java 8 or later
