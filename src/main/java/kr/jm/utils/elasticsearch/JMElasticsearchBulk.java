@@ -60,7 +60,8 @@ class JMElasticsearchBulk {
 
 		@Override
 		public void beforeBulk(long executionId, BulkRequest bulkRequest) {
-			log.info("send to ES - {} size Bulk sending bytes - {}",
+			log.info(
+					"[Before] Sending Bulk - size = {}, estimatedSizeInBytes = {}",
 					bulkRequest.requests().size(),
 					bulkRequest.estimatedSizeInBytes());
 		}
@@ -80,7 +81,7 @@ class JMElasticsearchBulk {
 	};
 
 	private void logBulkSendingSuccess(BulkResponse bulkResponse) {
-		log.info("send to ES - {} size Bulk sending time [{}ms]",
+		log.info("[Success] Sending Bulk - size = {}, tookInMillis = {}",
 				bulkResponse.getItems().length, bulkResponse.getTookInMillis());
 	}
 
