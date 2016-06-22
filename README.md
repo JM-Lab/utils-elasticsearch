@@ -4,7 +4,7 @@ JMLab Utility Libraries For Elasticsearch Client
 Extends The Elasticsearch 1.7 Client
 
 ## version
-[![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.github.jm-lab/jmlab-utils-elasticsearch/badge.svg)](http://search.maven.org/#artifactdetails%7Ccom.github.jm-lab%7Cjmlab-utils-elasticsearch%7C0.1.7%7Cjar)
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.github.jm-lab/jmlab-utils-elasticsearch/badge.svg)](http://search.maven.org/#artifactdetails%7Ccom.github.jm-lab%7Cjmlab-utils-elasticsearch%7C0.1.71%7Cjar)
 
 ## Prerequisites:
 * Java 8 or later
@@ -15,7 +15,7 @@ Checkout the source code:
 
     https://github.com/JM-Lab/utils-elasticsearch.git
     cd utils-elasticsearch
-    git checkout -b 0.1.7 origin/0.1.7
+    git checkout -b 0.1.71 origin/0.1.71
     mvn install
 
 ## Usage
@@ -25,7 +25,7 @@ Set up pom.xml :
     <dependency>
 			<groupId>com.github.jm-lab</groupId>
 			<artifactId>jmlab-utils-elasticsearch</artifactId>
-			<version>0.1.7</version>
+			<version>0.1.71</version>
 	</dependency>
     (...)
 
@@ -35,15 +35,14 @@ For example ([JMElasticsearchClientTest.java](https://github.com/JM-Lab/utils-el
 // Elasticsearch local data node start
 this.elasticsearch = NodeBuilder.nodeBuilder().build().start();
 
+String ipPortAsCsv = "localhost:9300,127.0.0.1:9300";
+
 // transportClient init
-String ipPortAsCsv = "localhost:9300";
 this.jmElasticsearchClient = new JMElasticsearchClient(ipPortAsCsv);
-		
+
 // nodeClient init
-boolean isTransportClient = false;
-ipPortAsCsv = "localhost:9300,127.0.0.1:9300";
-boolean clientTransportSniff = false;
-this.jmElasticsearchNodeClient = new JMElasticsearchClient(isTransportClient, ipPortAsCsv, clientTransportSniff);
+boolean isTransportClient = false; // false means nodeClient
+this.jmElasticsearchNodeClient = new JMElasticsearchClient(isTransportClient, ipPortAsCsv);
 
 // set to -1 to disable it
 int bulkActions = 3;

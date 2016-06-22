@@ -19,6 +19,8 @@ import lombok.Setter;
  */
 public class JMElasticsearchSearchAndCount {
 
+	private static final int DefaultHitsCount = 10;
+
 	private Client esClient;
 
 	/**
@@ -45,7 +47,7 @@ public class JMElasticsearchSearchAndCount {
 	 */
 	public JMElasticsearchSearchAndCount(Client elasticsearchClient) {
 		this.esClient = elasticsearchClient;
-		this.defaultHitsCount = Integer.MAX_VALUE;
+		this.defaultHitsCount = DefaultHitsCount;
 	}
 
 	/**

@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.github.jm-lab</groupId>
 	<artifactId>jmlab-utils-elasticsearch</artifactId>
-	<version>0.1.7</version>
+	<version>0.1.71</version>
 	<packaging>jar</packaging>
 	<name>JMLab-Utils-Elasticsearch</name>
 	<description>JMLab Utility Libraries For Elasticsearch Client</description>

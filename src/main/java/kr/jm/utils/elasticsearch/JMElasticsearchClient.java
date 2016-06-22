@@ -35,8 +35,10 @@ import lombok.experimental.Delegate;
  */
 public class JMElasticsearchClient implements Client {
 
+	private static final String HTTP_ENABLED = "http.enabled";
+	private static final String DISCOVERY_ZEN_PING_UNICAST_HOSTS =
+			"discovery.zen.ping.unicast.hosts";
 	private static final String LOCALHOST_9300 = "localhost:9300";
-	private static final String NETWORK_HOST = "network.host";
 	private static final String CLIENT_TRANSPORT_IGNORE_CLUSTER_NAME =
 			"client.transport.ignore_cluster_name";
 	private static final String CLUSTER_NAME = "cluster.name";
@@ -142,24 +144,6 @@ public class JMElasticsearchClient implements Client {
 				getSettingBuilderWithIgnoreClusterName());
 	}
 
-	/**
-	 * Instantiates a new JM elasticsearch client.
-	 *
-	 * @param isTransportClient
-	 *            the is transport client
-	 * @param ipPortAsCsv
-	 *            the ip port as csv
-	 * @param clientTransportSniff
-	 *            the client transport sniff
-	 */
-	public JMElasticsearchClient(boolean isTransportClient, String ipPortAsCsv,
-			boolean clientTransportSniff) {
-		this(true, ipPortAsCsv,
-				getSettingsWithClientTransportSniff(
-						getSettingBuilderWithIgnoreClusterName(),
-						clientTransportSniff));
-	}
-
 	private static Settings getSettingBuilderWithIgnoreClusterName() {
 		return ImmutableSettings.settingsBuilder()
 				.put(CLIENT_TRANSPORT_IGNORE_CLUSTER_NAME, true).build();
@@ -188,26 +172,6 @@ public class JMElasticsearchClient implements Client {
 	 *            the is transport client
 	 * @param ipPortAsCsv
 	 *            the ip port as csv
-	 * @param clientTransportSniff
-	 *            the client transport sniff
-	 * @param clusterName
-	 *            the cluster name
-	 */
-	public JMElasticsearchClient(boolean isTransportClient, String ipPortAsCsv,
-			boolean clientTransportSniff, String clusterName) {
-		this(isTransportClient, ipPortAsCsv,
-				getSettingsWithClientTransportSniff(
-						getSettingBuilderWithClusterName(clusterName),
-						clientTransportSniff));
-	}
-
-	/**
-	 * Instantiates a new JM elasticsearch client.
-	 *
-	 * @param isTransportClient
-	 *            the is transport client
-	 * @param ipPortAsCsv
-	 *            the ip port as csv
 	 * @param settings
 	 *            the settings
 	 */
@@ -215,11 +179,10 @@ public class JMElasticsearchClient implements Client {
 			Settings settings) {
 		this.isTransportClient = isTransportClient;
 		this.ipPortAsCsv = ipPortAsCsv;
-		this.settings =
-				isTransportClient ? settings
-						: ImmutableSettings.settingsBuilder()
-								.put(NETWORK_HOST, ipPortAsCsv).put(settings)
-								.build();
+		this.settings = isTransportClient ? settings
+				: ImmutableSettings.settingsBuilder()
+						.put(DISCOVERY_ZEN_PING_UNICAST_HOSTS, ipPortAsCsv)
+						.put(settings).build();
 		initElasticsearchClient(buildClient());
 	}
 
@@ -252,8 +215,10 @@ public class JMElasticsearchClient implements Client {
 	}
 
 	private Client buildNodeClient() {
-		return NodeBuilder.nodeBuilder().settings(settings).data(false)
-				.client(true).build().client();
+		return NodeBuilder.nodeBuilder()
+				.settings(ImmutableSettings.settingsBuilder()
+						.put(HTTP_ENABLED, false).put(settings))
+				.data(false).client(true).node().client();
 	}
 
 	/**

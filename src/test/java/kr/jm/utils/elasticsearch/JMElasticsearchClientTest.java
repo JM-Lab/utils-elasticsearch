@@ -56,16 +56,15 @@ public class JMElasticsearchClientTest {
 		// Elasticsearch local data node start
 		this.elasticsearch = NodeBuilder.nodeBuilder().build().start();
 
+		String ipPortAsCsv = "localhost:9300,127.0.0.1:9300";
+
 		// transportClient init
-		String ipPortAsCsv = "localhost:9300";
 		this.jmElasticsearchClient = new JMElasticsearchClient(ipPortAsCsv);
 
 		// nodeClient init
-		boolean isTransportClient = false;
-		ipPortAsCsv = "localhost:9300,127.0.0.1:9300";
-		boolean clientTransportSniff = false;
-		this.jmElasticsearchNodeClient = new JMElasticsearchClient(
-				isTransportClient, ipPortAsCsv, clientTransportSniff);
+		boolean isTransportClient = false; // false means nodeClient
+		this.jmElasticsearchNodeClient =
+				new JMElasticsearchClient(isTransportClient, ipPortAsCsv);
 
 		// set to -1 to disable it
 		int bulkActions = 3;
@@ -90,7 +89,9 @@ public class JMElasticsearchClientTest {
 						indices.toArray(new String[indices.size()])));
 		while (jmElasticsearchClient.getAllIndices().size() > 0)
 			JMThread.sleep(1000);
-		this.elasticsearch.stop();
+		jmElasticsearchClient.close();
+		jmElasticsearchNodeClient.close();
+		elasticsearch.stop();
 	}
 
 	/**

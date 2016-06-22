@@ -80,7 +80,7 @@ class JMElasticsearchBulk {
 	};
 
 	private void logBulkSendingSuccess(BulkResponse bulkResponse) {
-		log.info("send to ES - {} size Bulk sending time [{}m]",
+		log.info("send to ES - {} size Bulk sending time [{}ms]",
 				bulkResponse.getItems().length, bulkResponse.getTookInMillis());
 	}
 
