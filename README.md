@@ -1,10 +1,10 @@
 JMLab Utility Libraries For Elasticsearch Client
 ================================================
 
-Extends The Elasticsearch 1.7 Client
+Extends The Elasticsearch Client
 
 ## version
-[![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.github.jm-lab/jmlab-utils-elasticsearch/badge.svg)](http://search.maven.org/#artifactdetails%7Ccom.github.jm-lab%7Cjmlab-utils-elasticsearch%7C0.1.71%7Cjar)
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.github.jm-lab/jmlab-utils-elasticsearch/badge.svg)](http://search.maven.org/#artifactdetails%7Ccom.github.jm-lab%7Cjmlab-utils-elasticsearch%7C0.1.72%7Cjar)
 
 ## Prerequisites:
 * Java 8 or later
@@ -15,7 +15,7 @@ Checkout the source code:
 
     https://github.com/JM-Lab/utils-elasticsearch.git
     cd utils-elasticsearch
-    git checkout -b 0.1.71 origin/0.1.71
+    git checkout -b 0.1.72 origin/0.1.72
     mvn install
 
 ## Usage
@@ -25,24 +25,25 @@ Set up pom.xml :
     <dependency>
 			<groupId>com.github.jm-lab</groupId>
 			<artifactId>jmlab-utils-elasticsearch</artifactId>
-			<version>0.1.71</version>
+			<version>0.1.72</version>
 	</dependency>
     (...)
 
 For example ([JMElasticsearchClientTest.java](https://github.com/JM-Lab/utils-elasticsearch/blob/master/src/test/java/kr/jm/utils/elasticsearch/JMElasticsearchClientTest.java)) :
 
 ```java
+// your cluster name
+String clusterName = "elasticsearch";
 // Elasticsearch local data node start
-this.elasticsearch = NodeBuilder.nodeBuilder().build().start();
+this.elasticsearch = NodeBuilder.nodeBuilder().clusterName(clusterName).build().start();
 
 String ipPortAsCsv = "localhost:9300,127.0.0.1:9300";
-
 // transportClient init
 this.jmElasticsearchClient = new JMElasticsearchClient(ipPortAsCsv);
 
-// nodeClient init
+// nodeClient init with unicast
 boolean isTransportClient = false; // false means nodeClient
-this.jmElasticsearchNodeClient = new JMElasticsearchClient(isTransportClient, ipPortAsCsv);
+this.jmElasticsearchNodeClient = new JMElasticsearchClient(isTransportClient, ipPortAsCsv, clusterName);
 
 // set to -1 to disable it
 int bulkActions = 3;

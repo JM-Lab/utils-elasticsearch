@@ -27,14 +27,19 @@ import org.elasticsearch.common.transport.InetSocketTransportAddress;
 import org.elasticsearch.node.NodeBuilder;
 import org.elasticsearch.search.SearchHit;
 
+import kr.jm.utils.helper.JMLog;
 import lombok.Getter;
 import lombok.experimental.Delegate;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * The Class JMElasticsearchClient.
  */
+@Slf4j
 public class JMElasticsearchClient implements Client {
 
+	private static final String DISCOVERY_ZEN_PING_MULTICAST_ENABLED =
+			"discovery.zen.ping.multicast.enabled";
 	private static final String HTTP_ENABLED = "http.enabled";
 	private static final String DISCOVERY_ZEN_PING_UNICAST_HOSTS =
 			"discovery.zen.ping.unicast.hosts";
@@ -79,6 +84,8 @@ public class JMElasticsearchClient implements Client {
 	}
 
 	private void initElasticsearchClient(Client elasticsearchClient) {
+		JMLog.infoBeforeStart(log, "initElasticsearchClient",
+				elasticsearchClient.settings().getAsMap());
 		this.esClient = elasticsearchClient;
 		this.jmESBulk = new JMElasticsearchBulk(this);
 		this.jmESIndex = new JMElasticsearchIndex(this);
@@ -130,20 +137,6 @@ public class JMElasticsearchClient implements Client {
 						clientTransportSniff));
 	}
 
-	/**
-	 * Instantiates a new JM elasticsearch client.
-	 *
-	 * @param isTransportClient
-	 *            the is transport client
-	 * @param ipPortAsCsv
-	 *            the ip port as csv
-	 */
-	public JMElasticsearchClient(boolean isTransportClient,
-			String ipPortAsCsv) {
-		this(isTransportClient, ipPortAsCsv,
-				getSettingBuilderWithIgnoreClusterName());
-	}
-
 	private static Settings getSettingBuilderWithIgnoreClusterName() {
 		return ImmutableSettings.settingsBuilder()
 				.put(CLIENT_TRANSPORT_IGNORE_CLUSTER_NAME, true).build();
@@ -179,10 +172,7 @@ public class JMElasticsearchClient implements Client {
 			Settings settings) {
 		this.isTransportClient = isTransportClient;
 		this.ipPortAsCsv = ipPortAsCsv;
-		this.settings = isTransportClient ? settings
-				: ImmutableSettings.settingsBuilder()
-						.put(DISCOVERY_ZEN_PING_UNICAST_HOSTS, ipPortAsCsv)
-						.put(settings).build();
+		this.settings = settings;
 		initElasticsearchClient(buildClient());
 	}
 
@@ -217,7 +207,10 @@ public class JMElasticsearchClient implements Client {
 	private Client buildNodeClient() {
 		return NodeBuilder.nodeBuilder()
 				.settings(ImmutableSettings.settingsBuilder()
-						.put(HTTP_ENABLED, false).put(settings))
+						.put(HTTP_ENABLED, false)
+						.put(DISCOVERY_ZEN_PING_MULTICAST_ENABLED, false)
+						.put(DISCOVERY_ZEN_PING_UNICAST_HOSTS, ipPortAsCsv)
+						.put(settings).build())
 				.data(false).client(true).node().client();
 	}
 

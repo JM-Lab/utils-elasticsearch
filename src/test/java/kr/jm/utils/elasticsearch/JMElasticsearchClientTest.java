@@ -53,18 +53,21 @@ public class JMElasticsearchClientTest {
 	 */
 	@Before
 	public void setUp() throws Exception {
+		// your cluster name
+		String clusterName = "elasticsearch";
 		// Elasticsearch local data node start
-		this.elasticsearch = NodeBuilder.nodeBuilder().build().start();
+		this.elasticsearch = NodeBuilder.nodeBuilder().clusterName(clusterName)
+				.build().start();
 
 		String ipPortAsCsv = "localhost:9300,127.0.0.1:9300";
 
 		// transportClient init
 		this.jmElasticsearchClient = new JMElasticsearchClient(ipPortAsCsv);
 
-		// nodeClient init
+		// nodeClient init with unicast
 		boolean isTransportClient = false; // false means nodeClient
-		this.jmElasticsearchNodeClient =
-				new JMElasticsearchClient(isTransportClient, ipPortAsCsv);
+		this.jmElasticsearchNodeClient = new JMElasticsearchClient(
+				isTransportClient, ipPortAsCsv, clusterName);
 
 		// set to -1 to disable it
 		int bulkActions = 3;
