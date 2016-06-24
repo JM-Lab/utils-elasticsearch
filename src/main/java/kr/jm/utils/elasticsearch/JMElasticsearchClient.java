@@ -22,6 +22,7 @@ import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.cluster.metadata.MappingMetaData;
 import org.elasticsearch.common.collect.ImmutableOpenMap;
 import org.elasticsearch.common.settings.ImmutableSettings;
+import org.elasticsearch.common.settings.ImmutableSettings.Builder;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.transport.InetSocketTransportAddress;
 import org.elasticsearch.node.NodeBuilder;
@@ -38,6 +39,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class JMElasticsearchClient implements Client {
 
+	private static final String NODE_NAME = "node.name";
 	private static final String DISCOVERY_ZEN_PING_MULTICAST_ENABLED =
 			"discovery.zen.ping.multicast.enabled";
 	private static final String HTTP_ENABLED = "http.enabled";
@@ -83,6 +85,24 @@ public class JMElasticsearchClient implements Client {
 		initElasticsearchClient(elasticsearchClient);
 	}
 
+	/**
+	 * Instantiates a new JM elasticsearch client.
+	 *
+	 * @param isTransportClient
+	 *            the is transport client
+	 * @param ipPortAsCsv
+	 *            the ip port as csv
+	 * @param settings
+	 *            the settings
+	 */
+	public JMElasticsearchClient(boolean isTransportClient, String ipPortAsCsv,
+			Settings settings) {
+		this.isTransportClient = isTransportClient;
+		this.ipPortAsCsv = ipPortAsCsv;
+		this.settings = settings;
+		initElasticsearchClient(buildClient());
+	}
+
 	private void initElasticsearchClient(Client elasticsearchClient) {
 		JMLog.infoBeforeStart(log, "initElasticsearchClient",
 				elasticsearchClient.settings().getAsMap());
@@ -103,6 +123,11 @@ public class JMElasticsearchClient implements Client {
 		this(true, ipPortAsCsv, getSettingBuilderWithIgnoreClusterName());
 	}
 
+	private static Settings getSettingBuilderWithIgnoreClusterName() {
+		return getSettingBuilder()
+				.put(CLIENT_TRANSPORT_IGNORE_CLUSTER_NAME, true).build();
+	}
+
 	/**
 	 * Instantiates a new JM elasticsearch client.
 	 *
@@ -113,10 +138,9 @@ public class JMElasticsearchClient implements Client {
 	 */
 	public JMElasticsearchClient(String ipPortAsCsv,
 			boolean clientTransportSniff) {
-		this(true, ipPortAsCsv,
-				getSettingsWithClientTransportSniff(
-						getSettingBuilderWithIgnoreClusterName(),
-						clientTransportSniff));
+		this(true, ipPortAsCsv, getSettingBuilder()
+				.put(CLIENT_TRANSPORT_SNIFF, clientTransportSniff)
+				.put(CLIENT_TRANSPORT_IGNORE_CLUSTER_NAME, false).build());
 	}
 
 	/**
@@ -132,14 +156,9 @@ public class JMElasticsearchClient implements Client {
 	public JMElasticsearchClient(String ipPortAsCsv,
 			boolean clientTransportSniff, String clusterName) {
 		this(true, ipPortAsCsv,
-				getSettingsWithClientTransportSniff(
-						getSettingBuilderWithClusterName(clusterName),
-						clientTransportSniff));
-	}
-
-	private static Settings getSettingBuilderWithIgnoreClusterName() {
-		return ImmutableSettings.settingsBuilder()
-				.put(CLIENT_TRANSPORT_IGNORE_CLUSTER_NAME, true).build();
+				getSettingBuilder()
+						.put(CLIENT_TRANSPORT_SNIFF, clientTransportSniff)
+						.put(CLUSTER_NAME, clusterName).build());
 	}
 
 	/**
@@ -155,7 +174,7 @@ public class JMElasticsearchClient implements Client {
 	public JMElasticsearchClient(boolean isTransportClient, String ipPortAsCsv,
 			String clusterName) {
 		this(isTransportClient, ipPortAsCsv,
-				getSettingBuilderWithClusterName(clusterName));
+				getSettingBuilder().put(CLUSTER_NAME, clusterName).build());
 	}
 
 	/**
@@ -165,28 +184,16 @@ public class JMElasticsearchClient implements Client {
 	 *            the is transport client
 	 * @param ipPortAsCsv
 	 *            the ip port as csv
-	 * @param settings
-	 *            the settings
+	 * @param clusterName
+	 *            the cluster name
+	 * @param nodeClientName
+	 *            the node client name
 	 */
 	public JMElasticsearchClient(boolean isTransportClient, String ipPortAsCsv,
-			Settings settings) {
-		this.isTransportClient = isTransportClient;
-		this.ipPortAsCsv = ipPortAsCsv;
-		this.settings = settings;
-		initElasticsearchClient(buildClient());
-	}
-
-	private static Settings
-			getSettingBuilderWithClusterName(String clusterName) {
-		return ImmutableSettings.settingsBuilder()
-				.put(CLUSTER_NAME, clusterName).build();
-	}
-
-	private static Settings getSettingsWithClientTransportSniff(
-			Settings settings, boolean clientTransportSniff) {
-		return ImmutableSettings.settingsBuilder()
-				.put(CLIENT_TRANSPORT_SNIFF, clientTransportSniff).put(settings)
-				.build();
+			String clusterName, String nodeClientName) {
+		this(isTransportClient, ipPortAsCsv,
+				getSettingBuilder().put(CLUSTER_NAME, clusterName)
+						.put(NODE_NAME, nodeClientName).build());
 	}
 
 	private Client buildClient() {
@@ -206,12 +213,15 @@ public class JMElasticsearchClient implements Client {
 
 	private Client buildNodeClient() {
 		return NodeBuilder.nodeBuilder()
-				.settings(ImmutableSettings.settingsBuilder()
-						.put(HTTP_ENABLED, false)
+				.settings(getSettingBuilder().put(HTTP_ENABLED, false)
 						.put(DISCOVERY_ZEN_PING_MULTICAST_ENABLED, false)
 						.put(DISCOVERY_ZEN_PING_UNICAST_HOSTS, ipPortAsCsv)
 						.put(settings).build())
 				.data(false).client(true).node().client();
+	}
+
+	public static Builder getSettingBuilder() {
+		return ImmutableSettings.settingsBuilder();
 	}
 
 	/**
