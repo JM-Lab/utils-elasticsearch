@@ -59,15 +59,15 @@ public class JMElasticsearchClientTest {
 		this.elasticsearch = NodeBuilder.nodeBuilder().clusterName(clusterName)
 				.build().start();
 
-		String ipPortAsCsv = "localhost:9300,127.0.0.1:9300";
+		String ipPortInCsv = "localhost:9300,127.0.0.1:9300";
 
 		// transportClient init
-		this.jmElasticsearchClient = new JMElasticsearchClient(ipPortAsCsv);
+		this.jmElasticsearchClient = new JMElasticsearchClient(ipPortInCsv);
 
 		// nodeClient init with unicast
 		boolean isTransportClient = false; // false means nodeClient
 		this.jmElasticsearchNodeClient = new JMElasticsearchClient(
-				isTransportClient, ipPortAsCsv, clusterName);
+				isTransportClient, ipPortInCsv, clusterName);
 
 		// set to -1 to disable it
 		int bulkActions = 3;

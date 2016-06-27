@@ -54,7 +54,7 @@ public class JMElasticsearchClient implements Client {
 	private static final String CLIENT_TRANSPORT_SNIFF =
 			"client.transport.sniff";
 
-	private String ipPortAsCsv;
+	private String ipPortInCsv;
 	private boolean isTransportClient;
 
 	@Getter
@@ -92,15 +92,15 @@ public class JMElasticsearchClient implements Client {
 	 *
 	 * @param isTransportClient
 	 *            the is transport client
-	 * @param ipPortAsCsv
-	 *            the ip port as csv
+	 * @param ipPortInCsv
+	 *            the ip port in csv
 	 * @param settings
 	 *            the settings
 	 */
-	public JMElasticsearchClient(boolean isTransportClient, String ipPortAsCsv,
+	public JMElasticsearchClient(boolean isTransportClient, String ipPortInCsv,
 			Settings settings) {
 		this.isTransportClient = isTransportClient;
-		this.ipPortAsCsv = ipPortAsCsv;
+		this.ipPortInCsv = ipPortInCsv;
 		this.settings = settings;
 		initElasticsearchClient(buildClient());
 	}
@@ -118,11 +118,11 @@ public class JMElasticsearchClient implements Client {
 	/**
 	 * Instantiates a new JM elasticsearch client.
 	 *
-	 * @param ipPortAsCsv
-	 *            the ip port as csv
+	 * @param ipPortInCsv
+	 *            the ip port in csv
 	 */
-	public JMElasticsearchClient(String ipPortAsCsv) {
-		this(true, ipPortAsCsv, getSettingBuilderWithIgnoreClusterName());
+	public JMElasticsearchClient(String ipPortInCsv) {
+		this(true, ipPortInCsv, getSettingBuilderWithIgnoreClusterName());
 	}
 
 	private static Settings getSettingBuilderWithIgnoreClusterName() {
@@ -133,14 +133,14 @@ public class JMElasticsearchClient implements Client {
 	/**
 	 * Instantiates a new JM elasticsearch client.
 	 *
-	 * @param ipPortAsCsv
-	 *            the ip port as csv
+	 * @param ipPortInCsv
+	 *            the ip port in csv
 	 * @param clientTransportSniff
 	 *            the client transport sniff
 	 */
-	public JMElasticsearchClient(String ipPortAsCsv,
+	public JMElasticsearchClient(String ipPortInCsv,
 			boolean clientTransportSniff) {
-		this(true, ipPortAsCsv, getSettingBuilder()
+		this(true, ipPortInCsv, getSettingBuilder()
 				.put(CLIENT_TRANSPORT_SNIFF, clientTransportSniff)
 				.put(CLIENT_TRANSPORT_IGNORE_CLUSTER_NAME, false).build());
 	}
@@ -148,16 +148,16 @@ public class JMElasticsearchClient implements Client {
 	/**
 	 * Instantiates a new JM elasticsearch client.
 	 *
-	 * @param ipPortAsCsv
-	 *            the ip port as csv
+	 * @param ipPortInCsv
+	 *            the ip port in csv
 	 * @param clientTransportSniff
 	 *            the client transport sniff
 	 * @param clusterName
 	 *            the cluster name
 	 */
-	public JMElasticsearchClient(String ipPortAsCsv,
+	public JMElasticsearchClient(String ipPortInCsv,
 			boolean clientTransportSniff, String clusterName) {
-		this(true, ipPortAsCsv,
+		this(true, ipPortInCsv,
 				getSettingBuilder()
 						.put(CLIENT_TRANSPORT_SNIFF, clientTransportSniff)
 						.put(CLUSTER_NAME, clusterName).build());
@@ -168,14 +168,14 @@ public class JMElasticsearchClient implements Client {
 	 *
 	 * @param isTransportClient
 	 *            the is transport client
-	 * @param ipPortAsCsv
-	 *            the ip port as csv
+	 * @param ipPortInCsv
+	 *            the ip port in csv
 	 * @param clusterName
 	 *            the cluster name
 	 */
-	public JMElasticsearchClient(boolean isTransportClient, String ipPortAsCsv,
+	public JMElasticsearchClient(boolean isTransportClient, String ipPortInCsv,
 			String clusterName) {
-		this(isTransportClient, ipPortAsCsv,
+		this(isTransportClient, ipPortInCsv,
 				getSettingBuilder().put(CLUSTER_NAME, clusterName).build());
 	}
 
@@ -184,16 +184,16 @@ public class JMElasticsearchClient implements Client {
 	 *
 	 * @param isTransportClient
 	 *            the is transport client
-	 * @param ipPortAsCsv
-	 *            the ip port as csv
+	 * @param ipPortInCsv
+	 *            the ip port in csv
 	 * @param clusterName
 	 *            the cluster name
 	 * @param nodeClientName
 	 *            the node client name
 	 */
-	public JMElasticsearchClient(boolean isTransportClient, String ipPortAsCsv,
+	public JMElasticsearchClient(boolean isTransportClient, String ipPortInCsv,
 			String clusterName, String nodeClientName) {
-		this(isTransportClient, ipPortAsCsv,
+		this(isTransportClient, ipPortInCsv,
 				getSettingBuilder().put(CLUSTER_NAME, clusterName)
 						.put(NODE_NAME, nodeClientName).build());
 	}
@@ -205,7 +205,7 @@ public class JMElasticsearchClient implements Client {
 
 	private Client buildTransportClient() {
 		TransportClient transportClient = new TransportClient(settings);
-		for (String ipPort : ipPortAsCsv.split(",")) {
+		for (String ipPort : ipPortInCsv.split(",")) {
 			String[] seperatedIpPort = ipPort.split(":");
 			transportClient.addTransportAddress(new InetSocketTransportAddress(
 					seperatedIpPort[0], Integer.parseInt(seperatedIpPort[1])));
@@ -217,7 +217,7 @@ public class JMElasticsearchClient implements Client {
 		return NodeBuilder.nodeBuilder()
 				.settings(getSettingBuilder().put(HTTP_ENABLED, false)
 						.put(DISCOVERY_ZEN_PING_MULTICAST_ENABLED, false)
-						.put(DISCOVERY_ZEN_PING_UNICAST_HOSTS, ipPortAsCsv)
+						.put(DISCOVERY_ZEN_PING_UNICAST_HOSTS, ipPortInCsv)
 						.put(settings).build())
 				.data(false).client(true).node().client();
 	}
