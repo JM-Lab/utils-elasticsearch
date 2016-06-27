@@ -4,7 +4,7 @@ JMLab Utility Libraries For Elasticsearch Client
 Extends The Elasticsearch Client
 
 ## version
-[![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.github.jm-lab/jmlab-utils-elasticsearch/badge.svg)](http://search.maven.org/#artifactdetails%7Ccom.github.jm-lab%7Cjmlab-utils-elasticsearch%7C0.1.72%7Cjar)
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.github.jm-lab/jmlab-utils-elasticsearch/badge.svg)](http://search.maven.org/#artifactdetails%7Ccom.github.jm-lab%7Cjmlab-utils-elasticsearch%7C0.1.73%7Cjar)
 
 ## Prerequisites:
 * Java 8 or later
@@ -15,7 +15,7 @@ Checkout the source code:
 
     https://github.com/JM-Lab/utils-elasticsearch.git
     cd utils-elasticsearch
-    git checkout -b 0.1.72 origin/0.1.72
+    git checkout -b 0.1.73 origin/0.1.73
     mvn install
 
 ## Usage
@@ -25,7 +25,7 @@ Set up pom.xml :
     <dependency>
 			<groupId>com.github.jm-lab</groupId>
 			<artifactId>jmlab-utils-elasticsearch</artifactId>
-			<version>0.1.72</version>
+			<version>0.1.73</version>
 	</dependency>
     (...)
 

@@ -331,6 +331,9 @@ public class JMElasticsearchClientTest {
 		sourceObject3.put(test400, 400);
 		sourceObject3.put(test500, 500);
 
+		// hits 1건만 조회 되도록 설정
+		jmElasticsearchClient.setDefaultHitsCount(1);
+
 		jmElasticsearchClient.sendWithBulkProcessor(
 				JMCollections.buildList(sourceObject, sourceObject2), index,
 				type);
@@ -353,6 +356,12 @@ public class JMElasticsearchClientTest {
 
 		JMThread.sleep(3000);
 		searchResponse1 = jmElasticsearchClient.searchAll(indices, types);
+		System.out.println(searchResponse1);
+		assertEquals(1, searchResponse1.getHits().hits().length);
+
+		// 기본 조회 건수에 영향 없이 count를 구해서 검색
+		searchResponse1 =
+				jmElasticsearchClient.searchAllWithTargetCount(indices, types);
 		System.out.println(searchResponse1);
 		assertTrue(searchResponse1.toString().contains(test500));
 	}
