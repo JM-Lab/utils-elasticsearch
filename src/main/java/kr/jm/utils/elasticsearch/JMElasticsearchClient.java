@@ -25,9 +25,11 @@ import org.elasticsearch.common.settings.ImmutableSettings;
 import org.elasticsearch.common.settings.ImmutableSettings.Builder;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.transport.InetSocketTransportAddress;
+import org.elasticsearch.index.query.FilterBuilder;
 import org.elasticsearch.node.NodeBuilder;
 import org.elasticsearch.search.SearchHit;
 
+import kr.jm.utils.datastructure.JMArrays;
 import kr.jm.utils.helper.JMLog;
 import lombok.Getter;
 import lombok.experimental.Delegate;
@@ -278,6 +280,24 @@ public class JMElasticsearchClient implements Client {
 	 */
 	public List<String> getAllIdList(String index, String type) {
 		return extractIdList(searchAllWithField(index, type, "_id"));
+	}
+
+	/**
+	 * Extract id list.
+	 *
+	 * @param index
+	 *            the index
+	 * @param type
+	 *            the type
+	 * @param filterBuilder
+	 *            the filter builder
+	 * @return the list
+	 */
+	public List<String> extractIdList(String index, String type,
+			FilterBuilder filterBuilder) {
+		return extractIdList(
+				searchAllWithTargetCount(JMArrays.buildArray(index),
+						JMArrays.buildArray(type), filterBuilder));
 	}
 
 	/**

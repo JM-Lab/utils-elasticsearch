@@ -23,6 +23,7 @@ import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.index.query.FilterBuilder;
 
 import kr.jm.utils.exception.JMExceptionManager;
+import kr.jm.utils.helper.JMLog;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -345,7 +346,7 @@ class JMElasticsearchBulk {
 	 *            the bulk request builder
 	 */
 	public void excuteBulkRequestAsync(BulkRequestBuilder bulkRequestBuilder) {
-		bulkRequestBuilder.execute(bulkResponseActionListener);
+		excuteBulkRequestAsync(bulkRequestBuilder, bulkResponseActionListener);
 	}
 
 	/**
@@ -358,6 +359,8 @@ class JMElasticsearchBulk {
 	 */
 	public void excuteBulkRequestAsync(BulkRequestBuilder bulkRequestBuilder,
 			ActionListener<BulkResponse> bulkResponseActionListener) {
+		JMLog.infoBeforeStart(log, "excuteBulkRequestAsync", bulkRequestBuilder,
+				bulkResponseActionListener);
 		bulkRequestBuilder.execute(bulkResponseActionListener);
 	}
 
@@ -370,6 +373,7 @@ class JMElasticsearchBulk {
 	 */
 	public BulkResponse
 			excuteBulkRequest(BulkRequestBuilder bulkRequestBuilder) {
+		JMLog.infoBeforeStart(log, "excuteBulkRequest", bulkRequestBuilder);
 		return bulkRequestBuilder.execute().actionGet();
 	}
 
@@ -405,12 +409,11 @@ class JMElasticsearchBulk {
 	public BulkResponse deleteBulkDocs(String index, String type,
 			FilterBuilder filterBuilder) {
 		return excuteBulkRequest(
-				buildDeleteBulkRequestBuilder(jmESClient
-						.extractIdList(jmESClient.searchAll(index, type,
-								filterBuilder))
-						.stream()
-						.map(id -> jmESClient.prepareDelete(index, type, id))
-						.collect(toList())));
+				buildDeleteBulkRequestBuilder(
+						jmESClient.extractIdList(index, type, filterBuilder)
+								.stream().map(id -> jmESClient
+										.prepareDelete(index, type, id))
+								.collect(toList())));
 	}
 
 	/**
@@ -464,12 +467,11 @@ class JMElasticsearchBulk {
 	public void deleteBulkDocsAsync(String index, String type,
 			FilterBuilder filterBuilder) {
 		excuteBulkRequestAsync(
-				buildDeleteBulkRequestBuilder(jmESClient
-						.extractIdList(jmESClient.searchAll(index, type,
-								filterBuilder))
-						.stream()
-						.map(id -> jmESClient.prepareDelete(index, type, id))
-						.collect(toList())));
+				buildDeleteBulkRequestBuilder(
+						jmESClient.extractIdList(index, type, filterBuilder)
+								.stream().map(id -> jmESClient
+										.prepareDelete(index, type, id))
+								.collect(toList())));
 	}
 
 	/**
@@ -489,9 +491,7 @@ class JMElasticsearchBulk {
 			ActionListener<BulkResponse> bulkResponseActionListener) {
 		excuteBulkRequestAsync(
 				buildDeleteBulkRequestBuilder(
-						jmESClient
-								.extractIdList(jmESClient.searchAll(index, type,
-										filterBuilder))
+						jmESClient.extractIdList(index, type, filterBuilder)
 								.stream()
 								.map(id -> jmESClient.prepareDelete(index, type,
 										id))
