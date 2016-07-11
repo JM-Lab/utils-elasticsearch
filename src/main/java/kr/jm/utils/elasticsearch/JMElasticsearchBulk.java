@@ -387,12 +387,8 @@ class JMElasticsearchBulk {
 	 * @return true, if successful
 	 */
 	public boolean deleteBulkDocs(String index, String type) {
-		return excuteBulkRequest(
-				buildDeleteBulkRequestBuilder(
-						jmESClient.getAllIdList(index, type)
-								.stream().map(id -> jmESClient
-										.prepareDelete(index, type, id))
-								.collect(toList()))).hasFailures();
+		return excuteBulkRequest(buildDeleteBulkRequestBuilder(
+				buildAllDeleteRequestBuilderList(index, type))).hasFailures();
 	}
 
 	/**
@@ -408,12 +404,29 @@ class JMElasticsearchBulk {
 	 */
 	public BulkResponse deleteBulkDocs(String index, String type,
 			FilterBuilder filterBuilder) {
-		return excuteBulkRequest(
-				buildDeleteBulkRequestBuilder(
-						jmESClient.extractIdList(index, type, filterBuilder)
-								.stream().map(id -> jmESClient
-										.prepareDelete(index, type, id))
-								.collect(toList())));
+		return excuteBulkRequest(buildDeleteBulkRequestBuilder(
+				buildExtractDeleteRequestBuilderList(index, type,
+						filterBuilder)));
+	}
+
+	/**
+	 * Delete bulk docs.
+	 *
+	 * @param indexList
+	 *            the index list
+	 * @param typeList
+	 *            the type list
+	 * @param filterBuilder
+	 *            the filter builder
+	 * @return true, if successful
+	 */
+	public boolean deleteBulkDocs(List<String> indexList, List<String> typeList,
+			FilterBuilder filterBuilder) {
+		return indexList.stream()
+				.flatMap(index -> typeList.stream()
+						.map(type -> deleteBulkDocs(index, type,
+								filterBuilder)))
+				.noneMatch(reponse -> reponse.hasFailures());
 	}
 
 	/**
@@ -425,12 +438,8 @@ class JMElasticsearchBulk {
 	 *            the type
 	 */
 	public void deleteBulkDocsAsync(String index, String type) {
-		excuteBulkRequestAsync(
-				buildDeleteBulkRequestBuilder(
-						jmESClient.getAllIdList(index, type)
-								.stream().map(id -> jmESClient
-										.prepareDelete(index, type, id))
-								.collect(toList())));
+		excuteBulkRequestAsync(buildDeleteBulkRequestBuilder(
+				buildAllDeleteRequestBuilderList(index, type)));
 	}
 
 	/**
@@ -447,10 +456,7 @@ class JMElasticsearchBulk {
 			ActionListener<BulkResponse> bulkResponseActionListener) {
 		excuteBulkRequestAsync(
 				buildDeleteBulkRequestBuilder(
-						jmESClient.getAllIdList(index, type).stream()
-								.map(id -> jmESClient.prepareDelete(index, type,
-										id))
-								.collect(toList())),
+						buildAllDeleteRequestBuilderList(index, type)),
 				bulkResponseActionListener);
 	}
 
@@ -466,12 +472,25 @@ class JMElasticsearchBulk {
 	 */
 	public void deleteBulkDocsAsync(String index, String type,
 			FilterBuilder filterBuilder) {
-		excuteBulkRequestAsync(
-				buildDeleteBulkRequestBuilder(
-						jmESClient.extractIdList(index, type, filterBuilder)
-								.stream().map(id -> jmESClient
-										.prepareDelete(index, type, id))
-								.collect(toList())));
+		excuteBulkRequestAsync(buildDeleteBulkRequestBuilder(
+				buildExtractDeleteRequestBuilderList(index, type,
+						filterBuilder)));
+	}
+
+	/**
+	 * Delete bulk docs async.
+	 *
+	 * @param indexList
+	 *            the index list
+	 * @param typeList
+	 *            the type list
+	 * @param filterBuilder
+	 *            the filter builder
+	 */
+	public void deleteBulkDocsAsync(List<String> indexList,
+			List<String> typeList, FilterBuilder filterBuilder) {
+		indexList.forEach(index -> typeList.forEach(
+				type -> deleteBulkDocsAsync(index, type, filterBuilder)));
 	}
 
 	/**
@@ -489,14 +508,49 @@ class JMElasticsearchBulk {
 	public void deleteBulkDocsAsync(String index, String type,
 			FilterBuilder filterBuilder,
 			ActionListener<BulkResponse> bulkResponseActionListener) {
-		excuteBulkRequestAsync(
-				buildDeleteBulkRequestBuilder(
-						jmESClient.extractIdList(index, type, filterBuilder)
-								.stream()
-								.map(id -> jmESClient.prepareDelete(index, type,
-										id))
-								.collect(toList())),
+		excuteBulkRequestAsync(buildDeleteBulkRequestBuilder(
+				buildExtractDeleteRequestBuilderList(index, type,
+						filterBuilder)),
 				bulkResponseActionListener);
+	}
+
+	/**
+	 * Delete bulk docs async.
+	 *
+	 * @param indexList
+	 *            the index list
+	 * @param typeList
+	 *            the type list
+	 * @param filterBuilder
+	 *            the filter builder
+	 * @param bulkResponseActionListener
+	 *            the bulk response action listener
+	 */
+	public void deleteBulkDocsAsync(List<String> indexList,
+			List<String> typeList, FilterBuilder filterBuilder,
+			ActionListener<BulkResponse> bulkResponseActionListener) {
+		indexList.forEach(
+				index -> typeList.forEach(type -> deleteBulkDocsAsync(index,
+						type, filterBuilder, bulkResponseActionListener)));
+	}
+
+	private List<DeleteRequestBuilder>
+			buildAllDeleteRequestBuilderList(String index, String type) {
+		return buildDeleteRequestBuilderList(index, type,
+				jmESClient.getAllIdList(index, type));
+	}
+
+	private List<DeleteRequestBuilder> buildExtractDeleteRequestBuilderList(
+			String index, String type, FilterBuilder filterBuilder) {
+		return buildDeleteRequestBuilderList(index, type,
+				jmESClient.extractIdList(index, type, filterBuilder));
+	}
+
+	private List<DeleteRequestBuilder> buildDeleteRequestBuilderList(
+			String index, String type, List<String> idList) {
+		return idList.stream()
+				.map(id -> jmESClient.prepareDelete(index, type, id))
+				.collect(toList());
 	}
 
 }

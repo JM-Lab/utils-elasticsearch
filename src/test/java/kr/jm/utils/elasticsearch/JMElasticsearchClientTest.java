@@ -526,4 +526,63 @@ public class JMElasticsearchClientTest {
 
 	}
 
+	@Test
+	public void testDeleteDocBulkDocsWithMulti() throws Exception {
+		String index = "test-2015.05.12";
+		String type = "test-responsetime";
+		String test30 = "test_30";
+		String test400 = "test_400";
+		String test500 = "test_500";
+
+		Map<String, Object> sourceObject = new HashMap<String, Object>();
+		String timestamp = "@timestamp";
+		sourceObject.put(timestamp, "2015-05-12T00:59:00Z");
+		sourceObject.put(test30, 30);
+		sourceObject.put(test400, 400);
+
+		Map<String, Object> sourceObject2 = new HashMap<String, Object>();
+		sourceObject2.put(timestamp, "2015-05-12T00:59:02Z");
+		sourceObject2.put(test30, 30);
+		sourceObject2.put(test400, 400);
+
+		Map<String, Object> sourceObject3 = new HashMap<String, Object>();
+		sourceObject3.put(timestamp, "2015-05-12T01:00:00Z");
+		sourceObject3.put(test30, 30);
+		sourceObject3.put(test400, 400);
+		sourceObject3.put(test500, 500);
+
+		jmElasticsearchClient.sendWithBulkProcessor(JMCollections.buildList(
+				sourceObject, sourceObject2, sourceObject3), index, type);
+		JMThread.sleep(3000);
+		Set<String> allIndexList = jmElasticsearchClient.getAllIndices();
+		System.out.println(allIndexList);
+		SearchResponse searchResponse1 = jmElasticsearchClient.searchAll(index);
+		System.out.println(searchResponse1);
+
+		FilterBuilder filter = FilterBuilders.rangeFilter(timestamp)
+				.gte("2015-05-12T00:59:00Z").lt("2015-05-12T01:00:00Z");
+		boolean deleteDocs = jmElasticsearchNodeClient.deleteBulkDocs(
+				JMCollections.buildList(index), JMCollections.buildList(type),
+				filter);
+		assertTrue(deleteDocs);
+
+		JMThread.sleep(3000);
+		searchResponse1 = jmElasticsearchClient.searchAll(index, type);
+		System.out.println(searchResponse1);
+		assertEquals(1, searchResponse1.getHits().hits().length);
+
+		filter = FilterBuilders.existsFilter(test500);
+		jmElasticsearchNodeClient.deleteBulkDocsAsync(
+				JMCollections.buildList(index), JMCollections.buildList(type),
+				filter);
+		JMThread.sleep(3000);
+
+		searchResponse1 = jmElasticsearchClient.searchAll(index, type);
+		System.out.println(searchResponse1);
+
+		assertFalse(searchResponse1.toString().contains(test500));
+		assertEquals(0, searchResponse1.getHits().hits().length);
+
+	}
+
 }
