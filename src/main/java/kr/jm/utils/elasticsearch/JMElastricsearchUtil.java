@@ -21,7 +21,7 @@ class JMElastricsearchUtil {
 
 	static <R, T> T logExcuteAndReturn(String method, R requestBuilder,
 			ListenableActionFuture<T> responseFunction) {
-		log.info("[{}][timeoutMillis={}] - {}", method, timeoutMillis,
+		log.debug("[{}][timeoutMillis={}] - {}", method, timeoutMillis,
 				requestBuilder.toString());
 		try {
 			return responseFunction.actionGet();
