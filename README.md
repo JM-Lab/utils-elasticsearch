@@ -1,10 +1,17 @@
-JMLab Utility Libraries For Elasticsearch Client
-================================================
+JMLab Utility Libraries For Elasticsearch 5
+===========================================
 
-Extends The Elasticsearch Client
+## Useful Functions :
+* **Embeded Elasticsearch Node - JMEmbededElastricsearch**
+* **Elasticsearch Client (Transport) - JMElasticsearchClient**
+* ***SearchQuery***
+* ***SearchQueryBuilder***
+* ***CountQuery***
+* ***DeleteQuery***
+* ***BulkProcessor***
 
 ## version
-[![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.github.jm-lab/jmlab-utils-elasticsearch/badge.svg)](http://search.maven.org/#artifactdetails%7Ccom.github.jm-lab%7Cjmlab-utils-elasticsearch%7C0.1.73%7Cjar)
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.github.jm-lab/jmlab-utils-elasticsearch/badge.svg)](http://search.maven.org/#artifactdetails%7Ccom.github.jm-lab%7Cjmlab-utils-elasticsearch%7C0.5.0%7Cjar)
 
 ## Prerequisites:
 * Java 8 or later
@@ -15,7 +22,7 @@ Checkout the source code:
 
     https://github.com/JM-Lab/utils-elasticsearch.git
     cd utils-elasticsearch
-    git checkout -b 0.1.73 origin/0.1.73
+    git checkout -b 0.5.0 origin/0.5.0
     mvn install
 
 ## Usage
@@ -25,39 +32,24 @@ Set up pom.xml :
     <dependency>
 			<groupId>com.github.jm-lab</groupId>
 			<artifactId>jmlab-utils-elasticsearch</artifactId>
-			<version>0.1.73</version>
+			<version>0.5.0</version>
 	</dependency>
     (...)
 
 For example ([JMElasticsearchClientTest.java](https://github.com/JM-Lab/utils-elasticsearch/blob/master/src/test/java/kr/jm/utils/elasticsearch/JMElasticsearchClientTest.java)) :
 
 ```java
-// your cluster name
-String clusterName = "elasticsearch";
-// Elasticsearch local data node start
-this.elasticsearch = NodeBuilder.nodeBuilder().clusterName(clusterName).build().start();
-
-String ipPortInCsv = "localhost:9300,127.0.0.1:9300";
-// transportClient init
-this.jmElasticsearchClient = new JMElasticsearchClient(ipPortInCsv);
-
-// nodeClient init with unicast
-boolean isTransportClient = false; // false means nodeClient
-this.jmElasticsearchNodeClient = new JMElasticsearchClient(isTransportClient, ipPortInCsv, clusterName);
-
-// set to -1 to disable it
+// Embeded Elasticsearch Node Start
+this.jmEmbededElasticsearch = new JMEmbededElastricsearch();
+this.jmEmbededElasticsearch.start();
+		
+// JMElasticsearchClient Init
+this.jmElasticsearchClient = new JMElasticsearchClient(
+this.jmEmbededElasticsearch.getTransportIpPortPair());
+		
+// Bulk Processor Setting
 int bulkActions = 3;
-// set to -1 to disable it, ex) 100KB, 1m, 1gb or 1g ...
-String bulkSize = "1MB";
+long bulkSizeKB = 5 * 1024;
 int flushIntervalSeconds = 5;
-this.jmElasticsearchClient.setBulkProcessor(bulkActions, bulkSize, flushIntervalSeconds);
+this.jmElasticsearchClient.setBulkProcessor(bulkActions, bulkSizeKB, flushIntervalSeconds);
 ```
-
-## Useful Functions :
-* **Create Elasticsearch Client (Transport Or Node)**
-* **SearchQuery**
-* **SearchQueryBuilder**
-* **CountQuery**
-* **DeleteQuery**
-* **BulkProcessor**
-* **etc.**

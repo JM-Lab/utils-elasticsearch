@@ -1,16 +1,18 @@
 package kr.jm.utils.elasticsearch;
 
-import org.elasticsearch.action.count.CountRequestBuilder;
-import org.elasticsearch.action.count.CountResponse;
+import static kr.jm.utils.helper.JMOptional.ifNotNull;
+
+import java.util.Arrays;
+
 import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.action.search.SearchType;
 import org.elasticsearch.client.Client;
-import org.elasticsearch.index.query.FilterBuilder;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
-import org.elasticsearch.search.aggregations.AbstractAggregationBuilder;
+import org.elasticsearch.search.aggregations.AggregationBuilder;
 
+import kr.jm.utils.datastructure.JMArrays;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -23,19 +25,7 @@ public class JMElasticsearchSearchAndCount {
 
 	private Client esClient;
 
-	/**
-	 * Gets the default hits count.
-	 *
-	 * @return the default hits count
-	 */
 	@Getter
-
-	/**
-	 * Sets the default hits count.
-	 *
-	 * @param defaultHitsCount
-	 *            the new default hits count
-	 */
 	@Setter
 	private int defaultHitsCount;
 
@@ -48,137 +38,6 @@ public class JMElasticsearchSearchAndCount {
 	public JMElasticsearchSearchAndCount(Client elasticsearchClient) {
 		this.esClient = elasticsearchClient;
 		this.defaultHitsCount = DefaultHitsCount;
-	}
-
-	/**
-	 * Gets the search request builder.
-	 *
-	 * @param isSetExplain
-	 *            the is set explain
-	 * @param indices
-	 *            the indices
-	 * @return the search request builder
-	 */
-	public SearchRequestBuilder getSearchRequestBuilder(boolean isSetExplain,
-			String... indices) {
-		return esClient.prepareSearch(indices)
-				.setSearchType(SearchType.DFS_QUERY_THEN_FETCH)
-				.setSize(defaultHitsCount).setExplain(isSetExplain);
-	}
-
-	/**
-	 * Gets the search request builder.
-	 *
-	 * @param isSetExplain
-	 *            the is set explain
-	 * @param queryBuilder
-	 *            the query builder
-	 * @param indices
-	 *            the indices
-	 * @return the search request builder
-	 */
-	public SearchRequestBuilder getSearchRequestBuilder(boolean isSetExplain,
-			QueryBuilder queryBuilder, String... indices) {
-		return getSearchRequestBuilder(isSetExplain, indices)
-				.setQuery(queryBuilder);
-	}
-
-	/**
-	 * Gets the search request builder.
-	 *
-	 * @param isSetExplain
-	 *            the is set explain
-	 * @param indices
-	 *            the indices
-	 * @param types
-	 *            the types
-	 * @return the search request builder
-	 */
-	public SearchRequestBuilder getSearchRequestBuilder(boolean isSetExplain,
-			String[] indices, String[] types) {
-		return getSearchRequestBuilder(isSetExplain, indices).setTypes(types);
-	}
-
-	/**
-	 * Gets the search request builder.
-	 *
-	 * @param isSetExplain
-	 *            the is set explain
-	 * @param indices
-	 *            the indices
-	 * @param types
-	 *            the types
-	 * @param fields
-	 *            the fields
-	 * @return the search request builder
-	 */
-	public SearchRequestBuilder getSearchRequestBuilder(boolean isSetExplain,
-			String[] indices, String[] types, String[] fields) {
-		return getSearchRequestBuilder(isSetExplain, indices, types)
-				.addFields(fields);
-	}
-
-	/**
-	 * Gets the search request builder.
-	 *
-	 * @param isSetExplain
-	 *            the is set explain
-	 * @param indices
-	 *            the indices
-	 * @param types
-	 *            the types
-	 * @param queryBuilder
-	 *            the query builder
-	 * @return the search request builder
-	 */
-	public SearchRequestBuilder getSearchRequestBuilder(boolean isSetExplain,
-			String[] indices, String[] types, QueryBuilder queryBuilder) {
-		return getSearchRequestBuilder(isSetExplain, indices, types)
-				.setQuery(queryBuilder);
-	}
-
-	/**
-	 * Gets the search request builder.
-	 *
-	 * @param isSetExplain
-	 *            the is set explain
-	 * @param indices
-	 *            the indices
-	 * @param types
-	 *            the types
-	 * @param fields
-	 *            the fields
-	 * @param queryBuilder
-	 *            the query builder
-	 * @return the search request builder
-	 */
-	public SearchRequestBuilder getSearchRequestBuilder(boolean isSetExplain,
-			String[] indices, String[] types, String[] fields,
-			QueryBuilder queryBuilder) {
-		return getSearchRequestBuilder(isSetExplain, indices, types, fields)
-				.setQuery(queryBuilder);
-	}
-
-	/**
-	 * Gets the search request builder.
-	 *
-	 * @param isSetExplain
-	 *            the is set explain
-	 * @param indices
-	 *            the indices
-	 * @param types
-	 *            the types
-	 * @param queryBuilder
-	 *            the query builder
-	 * @param aggregationBuilders
-	 *            the aggregation builders
-	 * @return the search request builder
-	 */
-	public SearchRequestBuilder getSearchRequestBuilder(boolean isSetExplain,
-			String[] indices, String[] types, QueryBuilder queryBuilder,
-			AbstractAggregationBuilder... aggregationBuilders) {
-		return addAggregationBuilders(getSearchRequestBuilder(isSetExplain,
-				indices, types, queryBuilder), aggregationBuilders);
 	}
 
 	/**
@@ -201,45 +60,148 @@ public class JMElasticsearchSearchAndCount {
 	public SearchRequestBuilder getSearchRequestBuilder(boolean isSetExplain,
 			String[] indices, String[] types, String[] fields,
 			QueryBuilder queryBuilder,
-			AbstractAggregationBuilder... aggregationBuilders) {
-		return addAggregationBuilders(getSearchRequestBuilder(isSetExplain,
-				indices, types, fields, queryBuilder), aggregationBuilders);
+			AggregationBuilder[] aggregationBuilders) {
+		SearchRequestBuilder searchRequestBuilder =
+				esClient.prepareSearch(indices)
+						.setSearchType(SearchType.DFS_QUERY_THEN_FETCH)
+						.setSize(defaultHitsCount).setExplain(isSetExplain);
+		ifNotNull(types, searchRequestBuilder::setTypes);
+		ifNotNull(types, searchRequestBuilder::setTypes);
+		ifNotNull(fields, searchRequestBuilder::storedFields);
+		ifNotNull(queryBuilder, searchRequestBuilder::setQuery);
+		ifNotNull(aggregationBuilders, array -> Arrays.stream(array)
+				.forEach(searchRequestBuilder::addAggregation));
+		return searchRequestBuilder;
 	}
 
 	/**
-	 * Gets the search request builder with match all.
+	 * Gets the search request builder.
 	 *
 	 * @param isSetExplain
 	 *            the is set explain
 	 * @param indices
 	 *            the indices
-	 * @return the search request builder with match all
+	 * @param types
+	 *            the types
+	 * @param fields
+	 *            the fields
+	 * @param queryBuilder
+	 *            the query builder
+	 * @return the search request builder
 	 */
-	public SearchRequestBuilder getSearchRequestBuilderWithMatchAll(
-			boolean isSetExplain, String... indices) {
-		return getSearchRequestBuilder(isSetExplain, indices)
-				.setQuery(QueryBuilders.matchAllQuery());
+	public SearchRequestBuilder getSearchRequestBuilder(boolean isSetExplain,
+			String[] indices, String[] types, String[] fields,
+			QueryBuilder queryBuilder) {
+		return getSearchRequestBuilder(isSetExplain, indices, types, fields,
+				queryBuilder, null);
 	}
 
 	/**
-	 * Gets the search request builder with match all.
+	 * Gets the search request builder.
 	 *
 	 * @param isSetExplain
 	 *            the is set explain
-	 * @param index
-	 *            the index
-	 * @param type
-	 *            the type
-	 * @param filterBuilder
-	 *            the filter builder
-	 * @return the search request builder with match all
+	 * @param indices
+	 *            the indices
+	 * @param types
+	 *            the types
+	 * @param fields
+	 *            the fields
+	 * @return the search request builder
 	 */
-	public SearchRequestBuilder getSearchRequestBuilderWithMatchAll(
-			boolean isSetExplain, String index, String type,
-			FilterBuilder filterBuilder) {
-		return getSearchRequestBuilderWithMatchAll(isSetExplain, index)
-				.setTypes(type).setQuery(QueryBuilders.filteredQuery(
-						QueryBuilders.matchAllQuery(), filterBuilder));
+	public SearchRequestBuilder getSearchRequestBuilder(boolean isSetExplain,
+			String[] indices, String[] types, String[] fields) {
+		return getSearchRequestBuilder(isSetExplain, indices, types, fields,
+				null);
+	}
+
+	/**
+	 * Gets the search request builder.
+	 *
+	 * @param isSetExplain
+	 *            the is set explain
+	 * @param indices
+	 *            the indices
+	 * @param types
+	 *            the types
+	 * @return the search request builder
+	 */
+	public SearchRequestBuilder getSearchRequestBuilder(boolean isSetExplain,
+			String[] indices, String[] types) {
+		return getSearchRequestBuilder(isSetExplain, indices, types, null, null,
+				null);
+	}
+
+	/**
+	 * Gets the search request builder.
+	 *
+	 * @param isSetExplain
+	 *            the is set explain
+	 * @param indices
+	 *            the indices
+	 * @return the search request builder
+	 */
+	public SearchRequestBuilder getSearchRequestBuilder(boolean isSetExplain,
+			String[] indices) {
+		return getSearchRequestBuilder(isSetExplain, indices, null);
+	}
+
+	/**
+	 * Gets the search request builder.
+	 *
+	 * @param isSetExplain
+	 *            the is set explain
+	 * @param indices
+	 *            the indices
+	 * @param types
+	 *            the types
+	 * @param queryBuilder
+	 *            the query builder
+	 * @return the search request builder
+	 */
+	public SearchRequestBuilder getSearchRequestBuilder(boolean isSetExplain,
+			String[] indices, String[] types, QueryBuilder queryBuilder) {
+		return getSearchRequestBuilder(isSetExplain, indices, types, null,
+				queryBuilder);
+	}
+
+	/**
+	 * Gets the search request builder.
+	 *
+	 * @param isSetExplain
+	 *            the is set explain
+	 * @param queryBuilder
+	 *            the query builder
+	 * @param indices
+	 *            the indices
+	 * @return the search request builder
+	 */
+	public SearchRequestBuilder getSearchRequestBuilder(boolean isSetExplain,
+			QueryBuilder queryBuilder, String... indices) {
+		return getSearchRequestBuilder(isSetExplain, indices, null, null,
+				queryBuilder);
+	}
+
+	/**
+	 * Gets the search request builder.
+	 *
+	 * @param isSetExplain
+	 *            the is set explain
+	 * @param indices
+	 *            the indices
+	 * @param types
+	 *            the types
+	 * @param queryBuilder
+	 *            the query builder
+	 * @param aggregationBuilders
+	 *            the aggregation builders
+	 * @return the search request builder
+	 */
+	public SearchRequestBuilder getSearchRequestBuilder(boolean isSetExplain,
+			String[] indices, String[] types, QueryBuilder queryBuilder,
+			AggregationBuilder[] aggregationBuilders) {
+		return getSearchRequestBuilder(isSetExplain, indices, types, null,
+				queryBuilder, aggregationBuilders);
 	}
 
 	/**
@@ -251,12 +213,46 @@ public class JMElasticsearchSearchAndCount {
 	 *            the indices
 	 * @param types
 	 *            the types
+	 * @param fields
+	 *            the fields
+	 * @param filterQueryBuilder
+	 *            the filter query builder
+	 * @param aggregationBuilders
+	 *            the aggregation builders
 	 * @return the search request builder with match all
 	 */
 	public SearchRequestBuilder getSearchRequestBuilderWithMatchAll(
-			boolean isSetExplain, String[] indices, String[] types) {
-		return getSearchRequestBuilderWithMatchAll(isSetExplain, indices)
-				.setTypes(types);
+			boolean isSetExplain, String[] indices, String[] types,
+			String[] fields, QueryBuilder filterQueryBuilder,
+			AggregationBuilder[] aggregationBuilders) {
+		QueryBuilder queryBuilder = QueryBuilders.matchAllQuery();
+		if (filterQueryBuilder != null)
+			queryBuilder = QueryBuilders.boolQuery().must(queryBuilder)
+					.filter(filterQueryBuilder);
+		return getSearchRequestBuilder(isSetExplain, indices, types, fields,
+				queryBuilder, aggregationBuilders);
+	}
+
+	/**
+	 * Gets the search request builder with match all.
+	 *
+	 * @param isSetExplain
+	 *            the is set explain
+	 * @param indices
+	 *            the indices
+	 * @param types
+	 *            the types
+	 * @param fields
+	 *            the fields
+	 * @param filterQueryBuilder
+	 *            the filter query builder
+	 * @return the search request builder with match all
+	 */
+	public SearchRequestBuilder getSearchRequestBuilderWithMatchAll(
+			boolean isSetExplain, String[] indices, String[] types,
+			String[] fields, QueryBuilder filterQueryBuilder) {
+		return getSearchRequestBuilderWithMatchAll(isSetExplain, indices, types,
+				fields, filterQueryBuilder, null);
 	}
 
 	/**
@@ -275,8 +271,8 @@ public class JMElasticsearchSearchAndCount {
 	public SearchRequestBuilder getSearchRequestBuilderWithMatchAll(
 			boolean isSetExplain, String[] indices, String[] types,
 			String[] fields) {
-		return getSearchRequestBuilderWithMatchAll(isSetExplain, indices, types)
-				.addFields(fields);
+		return getSearchRequestBuilderWithMatchAll(isSetExplain, indices, types,
+				fields, null, null);
 	}
 
 	/**
@@ -288,16 +284,26 @@ public class JMElasticsearchSearchAndCount {
 	 *            the indices
 	 * @param types
 	 *            the types
-	 * @param filterBuilder
-	 *            the filter builder
 	 * @return the search request builder with match all
 	 */
 	public SearchRequestBuilder getSearchRequestBuilderWithMatchAll(
-			boolean isSetExplain, String[] indices, String[] types,
-			FilterBuilder filterBuilder) {
-		return getSearchRequestBuilderWithMatchAll(isSetExplain, indices, types)
-				.setQuery(QueryBuilders.filteredQuery(
-						QueryBuilders.matchAllQuery(), filterBuilder));
+			boolean isSetExplain, String[] indices, String[] types) {
+		return getSearchRequestBuilderWithMatchAll(isSetExplain, indices, types,
+				null, null, null);
+	}
+
+	/**
+	 * Gets the search request builder with match all.
+	 *
+	 * @param isSetExplain
+	 *            the is set explain
+	 * @param indices
+	 *            the indices
+	 * @return the search request builder with match all
+	 */
+	public SearchRequestBuilder getSearchRequestBuilderWithMatchAll(
+			boolean isSetExplain, String[] indices) {
+		return getSearchRequestBuilderWithMatchAll(isSetExplain, indices, null);
 	}
 
 	/**
@@ -309,18 +315,15 @@ public class JMElasticsearchSearchAndCount {
 	 *            the indices
 	 * @param types
 	 *            the types
-	 * @param fields
-	 *            the fields
-	 * @param filterBuilder
-	 *            the filter builder
+	 * @param filterQueryBuilder
+	 *            the filter query builder
 	 * @return the search request builder with match all
 	 */
 	public SearchRequestBuilder getSearchRequestBuilderWithMatchAll(
 			boolean isSetExplain, String[] indices, String[] types,
-			String[] fields, FilterBuilder filterBuilder) {
-		return getSearchRequestBuilder(isSetExplain, indices, types, fields)
-				.setQuery(QueryBuilders.filteredQuery(
-						QueryBuilders.matchAllQuery(), filterBuilder));
+			QueryBuilder filterQueryBuilder) {
+		return getSearchRequestBuilderWithMatchAll(isSetExplain, indices, types,
+				null, filterQueryBuilder, null);
 	}
 
 	/**
@@ -328,67 +331,20 @@ public class JMElasticsearchSearchAndCount {
 	 *
 	 * @param isSetExplain
 	 *            the is set explain
-	 * @param indices
-	 *            the indices
-	 * @param types
-	 *            the types
-	 * @param aggregationBuilders
-	 *            the aggregation builders
+	 * @param index
+	 *            the index
+	 * @param type
+	 *            the type
+	 * @param filterQueryBuilder
+	 *            the filter query builder
 	 * @return the search request builder with match all
 	 */
 	public SearchRequestBuilder getSearchRequestBuilderWithMatchAll(
-			boolean isSetExplain, String[] indices, String[] types,
-			AbstractAggregationBuilder... aggregationBuilders) {
-		return addAggregationBuilders(getSearchRequestBuilderWithMatchAll(
-				isSetExplain, indices, types), aggregationBuilders);
-	}
-
-	/**
-	 * Gets the search request builder with match all.
-	 *
-	 * @param isSetExplain
-	 *            the is set explain
-	 * @param indices
-	 *            the indices
-	 * @param types
-	 *            the types
-	 * @param fields
-	 *            the fields
-	 * @param aggregationBuilders
-	 *            the aggregation builders
-	 * @return the search request builder with match all
-	 */
-	public SearchRequestBuilder getSearchRequestBuilderWithMatchAll(
-			boolean isSetExplain, String[] indices, String[] types,
-			String[] fields,
-			AbstractAggregationBuilder... aggregationBuilders) {
-		return addAggregationBuilders(getSearchRequestBuilderWithMatchAll(
-				isSetExplain, indices, types, fields), aggregationBuilders);
-	}
-
-	/**
-	 * Gets the search request builder with match all.
-	 *
-	 * @param isSetExplain
-	 *            the is set explain
-	 * @param indices
-	 *            the indices
-	 * @param types
-	 *            the types
-	 * @param filterBuilder
-	 *            the filter builder
-	 * @param aggregationBuilders
-	 *            the aggregation builders
-	 * @return the search request builder with match all
-	 */
-	public SearchRequestBuilder getSearchRequestBuilderWithMatchAll(
-			boolean isSetExplain, String[] indices, String[] types,
-			FilterBuilder filterBuilder,
-			AbstractAggregationBuilder... aggregationBuilders) {
-		return addAggregationBuilders(
-				getSearchRequestBuilderWithMatchAll(isSetExplain, indices,
-						types, filterBuilder),
-				aggregationBuilders);
+			boolean isSetExplain, String index, String type,
+			QueryBuilder filterQueryBuilder) {
+		return getSearchRequestBuilderWithMatchAll(isSetExplain,
+				JMArrays.buildArray(index), JMArrays.buildArray(type),
+				filterQueryBuilder);
 	}
 
 	/**
@@ -402,42 +358,15 @@ public class JMElasticsearchSearchAndCount {
 	 *            the types
 	 * @param fields
 	 *            the fields
-	 * @param filterBuilder
-	 *            the filter builder
 	 * @param aggregationBuilders
 	 *            the aggregation builders
 	 * @return the search request builder with match all
 	 */
 	public SearchRequestBuilder getSearchRequestBuilderWithMatchAll(
 			boolean isSetExplain, String[] indices, String[] types,
-			String[] fields, FilterBuilder filterBuilder,
-			AbstractAggregationBuilder... aggregationBuilders) {
-		return addAggregationBuilders(
-				getSearchRequestBuilderWithMatchAll(isSetExplain, indices,
-						types, fields, filterBuilder),
-				aggregationBuilders);
-	}
-
-	private SearchRequestBuilder addAggregationBuilders(
-			SearchRequestBuilder searchRequestBuilder,
-			AbstractAggregationBuilder... aggregationBuilders) {
-		for (AbstractAggregationBuilder aggregationBuilder : aggregationBuilders)
-			searchRequestBuilder.addAggregation(aggregationBuilder);
-		return searchRequestBuilder;
-	}
-
-	/**
-	 * Search all.
-	 *
-	 * @param isSetExplain
-	 *            the is set explain
-	 * @param indices
-	 *            the indices
-	 * @return the search response
-	 */
-	public SearchResponse searchAll(boolean isSetExplain, String... indices) {
-		return searchQuery(
-				getSearchRequestBuilderWithMatchAll(isSetExplain, indices));
+			String[] fields, AggregationBuilder[] aggregationBuilders) {
+		return getSearchRequestBuilderWithMatchAll(isSetExplain, indices, types,
+				fields, null, aggregationBuilders);
 	}
 
 	/**
@@ -449,12 +378,41 @@ public class JMElasticsearchSearchAndCount {
 	 *            the indices
 	 * @param types
 	 *            the types
+	 * @param fields
+	 *            the fields
+	 * @param filterQueryBuilder
+	 *            the filter query builder
+	 * @param aggregationBuilders
+	 *            the aggregation builders
 	 * @return the search response
 	 */
 	public SearchResponse searchAll(boolean isSetExplain, String[] indices,
-			String[] types) {
+			String[] types, String[] fields, QueryBuilder filterQueryBuilder,
+			AggregationBuilder[] aggregationBuilders) {
 		return searchQuery(getSearchRequestBuilderWithMatchAll(isSetExplain,
-				indices, types));
+				indices, types, fields, filterQueryBuilder,
+				aggregationBuilders));
+	}
+
+	/**
+	 * Search all.
+	 *
+	 * @param isSetExplain
+	 *            the is set explain
+	 * @param indices
+	 *            the indices
+	 * @param types
+	 *            the types
+	 * @param fields
+	 *            the fields
+	 * @param filterQueryBuilder
+	 *            the filter query builder
+	 * @return the search response
+	 */
+	public SearchResponse searchAll(boolean isSetExplain, String[] indices,
+			String[] types, String[] fields, QueryBuilder filterQueryBuilder) {
+		return searchAll(isSetExplain, indices, types, fields,
+				filterQueryBuilder, null);
 	}
 
 	/**
@@ -472,8 +430,7 @@ public class JMElasticsearchSearchAndCount {
 	 */
 	public SearchResponse searchAll(boolean isSetExplain, String[] indices,
 			String[] types, String[] fields) {
-		return searchQuery(
-				getSearchRequestBuilder(isSetExplain, indices, types, fields));
+		return searchAll(isSetExplain, indices, types, fields, null, null);
 	}
 
 	/**
@@ -485,14 +442,24 @@ public class JMElasticsearchSearchAndCount {
 	 *            the indices
 	 * @param types
 	 *            the types
-	 * @param filterBuilder
-	 *            the filter builder
 	 * @return the search response
 	 */
 	public SearchResponse searchAll(boolean isSetExplain, String[] indices,
-			String[] types, FilterBuilder filterBuilder) {
-		return searchQuery(getSearchRequestBuilderWithMatchAll(isSetExplain,
-				indices, types, filterBuilder));
+			String[] types) {
+		return searchAll(isSetExplain, indices, types, null, null, null);
+	}
+
+	/**
+	 * Search all.
+	 *
+	 * @param isSetExplain
+	 *            the is set explain
+	 * @param indices
+	 *            the indices
+	 * @return the search response
+	 */
+	public SearchResponse searchAll(boolean isSetExplain, String[] indices) {
+		return searchAll(isSetExplain, indices, null);
 	}
 
 	/**
@@ -504,35 +471,14 @@ public class JMElasticsearchSearchAndCount {
 	 *            the indices
 	 * @param types
 	 *            the types
-	 * @param fields
-	 *            the fields
-	 * @param filterBuilder
-	 *            the filter builder
+	 * @param filterQueryBuilder
+	 *            the filter query builder
 	 * @return the search response
 	 */
 	public SearchResponse searchAll(boolean isSetExplain, String[] indices,
-			String[] types, String[] fields, FilterBuilder filterBuilder) {
-		return searchQuery(getSearchRequestBuilderWithMatchAll(isSetExplain,
-				indices, types, fields, filterBuilder));
-	}
-
-	/**
-	 * Search all.
-	 *
-	 * @param isSetExplain
-	 *            the is set explain
-	 * @param indices
-	 *            the indices
-	 * @param types
-	 *            the types
-	 * @param aggregationBuilders
-	 *            the aggregation builders
-	 * @return the search response
-	 */
-	public SearchResponse searchAll(boolean isSetExplain, String[] indices,
-			String[] types, AbstractAggregationBuilder... aggregationBuilders) {
-		return searchQuery(getSearchRequestBuilderWithMatchAll(isSetExplain,
-				indices, types, aggregationBuilders));
+			String[] types, QueryBuilder filterQueryBuilder) {
+		return searchAll(isSetExplain, indices, types, null,
+				filterQueryBuilder);
 	}
 
 	/**
@@ -552,55 +498,184 @@ public class JMElasticsearchSearchAndCount {
 	 */
 	public SearchResponse searchAll(boolean isSetExplain, String[] indices,
 			String[] types, String[] fields,
-			AbstractAggregationBuilder... aggregationBuilders) {
-		return searchQuery(getSearchRequestBuilderWithMatchAll(isSetExplain,
-				indices, types, fields, aggregationBuilders));
+			AggregationBuilder[] aggregationBuilders) {
+		return searchAll(isSetExplain, indices, types, fields, null,
+				aggregationBuilders);
+
 	}
 
 	/**
 	 * Search all.
 	 *
-	 * @param isSetExplain
-	 *            the is set explain
-	 * @param indices
-	 *            the indices
-	 * @param types
-	 *            the types
-	 * @param filterBuilder
-	 *            the filter builder
-	 * @param aggregationBuilders
-	 *            the aggregation builders
-	 * @return the search response
-	 */
-	public SearchResponse searchAll(boolean isSetExplain, String[] indices,
-			String[] types, FilterBuilder filterBuilder,
-			AbstractAggregationBuilder... aggregationBuilders) {
-		return searchQuery(getSearchRequestBuilderWithMatchAll(isSetExplain,
-				indices, types, filterBuilder, aggregationBuilders));
-	}
-
-	/**
-	 * Search all.
-	 *
-	 * @param isSetExplain
-	 *            the is set explain
 	 * @param indices
 	 *            the indices
 	 * @param types
 	 *            the types
 	 * @param fields
 	 *            the fields
-	 * @param filterBuilder
-	 *            the filter builder
+	 * @return the search response
+	 */
+	public SearchResponse searchAll(String[] indices, String[] types,
+			String[] fields) {
+		return searchAll(false, indices, types, fields);
+	}
+
+	/**
+	 * Search all with field.
+	 *
+	 * @param index
+	 *            the index
+	 * @param type
+	 *            the type
+	 * @param fields
+	 *            the fields
+	 * @return the search response
+	 */
+	public SearchResponse searchAllWithField(String index, String type,
+			String... fields) {
+		return searchAll(JMArrays.buildArray(index), JMArrays.buildArray(type),
+				fields);
+	}
+
+	/**
+	 * Search all.
+	 *
+	 * @param isSetExplain
+	 *            the is set explain
+	 * @param indices
+	 *            the indices
+	 * @param types
+	 *            the types
 	 * @param aggregationBuilders
 	 *            the aggregation builders
 	 * @return the search response
 	 */
 	public SearchResponse searchAll(boolean isSetExplain, String[] indices,
-			String[] types, String[] fields, FilterBuilder filterBuilder,
-			AbstractAggregationBuilder... aggregationBuilders) {
-		return searchQuery(getSearchRequestBuilderWithMatchAll(isSetExplain,
-				indices, types, fields, filterBuilder, aggregationBuilders));
+			String[] types, AggregationBuilder[] aggregationBuilders) {
+		return searchAll(isSetExplain, indices, types, null, null,
+				aggregationBuilders);
+	}
+
+	/**
+	 * Search all.
+	 *
+	 * @param isSetExplain
+	 *            the is set explain
+	 * @param indices
+	 *            the indices
+	 * @param types
+	 *            the types
+	 * @param filterQueryBuilder
+	 *            the filter query builder
+	 * @param aggregationBuilders
+	 *            the aggregation builders
+	 * @return the search response
+	 */
+	public SearchResponse searchAll(boolean isSetExplain, String[] indices,
+			String[] types, QueryBuilder filterQueryBuilder,
+			AggregationBuilder[] aggregationBuilders) {
+		return searchAll(isSetExplain, indices, types, null, filterQueryBuilder,
+				aggregationBuilders);
+	}
+
+	/**
+	 * Search all.
+	 *
+	 * @param indices
+	 *            the indices
+	 * @param types
+	 *            the types
+	 * @param fields
+	 *            the fields
+	 * @param filterQueryBuilder
+	 *            the filter query builder
+	 * @param aggregationBuilders
+	 *            the aggregation builders
+	 * @return the search response
+	 */
+	public SearchResponse searchAll(String[] indices, String[] types,
+			String[] fields, QueryBuilder filterQueryBuilder,
+			AggregationBuilder[] aggregationBuilders) {
+		return searchAll(false, indices, types, fields, filterQueryBuilder,
+				aggregationBuilders);
+	}
+
+	/**
+	 * Search all.
+	 *
+	 * @param indices
+	 *            the indices
+	 * @param types
+	 *            the types
+	 * @param filterQueryBuilder
+	 *            the filter query builder
+	 * @param aggregationBuilders
+	 *            the aggregation builders
+	 * @return the search response
+	 */
+	public SearchResponse searchAll(String[] indices, String[] types,
+			QueryBuilder filterQueryBuilder,
+			AggregationBuilder[] aggregationBuilders) {
+		return searchAll(indices, types, null, filterQueryBuilder,
+				aggregationBuilders);
+	}
+
+	/**
+	 * Search all.
+	 *
+	 * @param indices
+	 *            the indices
+	 * @param types
+	 *            the types
+	 * @param filterQueryBuilder
+	 *            the filter query builder
+	 * @return the search response
+	 */
+	public SearchResponse searchAll(String[] indices, String[] types,
+			QueryBuilder filterQueryBuilder) {
+		return searchAll(indices, types, filterQueryBuilder, null);
+	}
+
+	/**
+	 * Search all.
+	 *
+	 * @param indices
+	 *            the indices
+	 * @param types
+	 *            the types
+	 * @param aggregationBuilders
+	 *            the aggregation builders
+	 * @return the search response
+	 */
+	public SearchResponse searchAll(String[] indices, String[] types,
+			AggregationBuilder[] aggregationBuilders) {
+		return searchAll(indices, types, null, aggregationBuilders);
+	}
+
+	/**
+	 * Search all.
+	 *
+	 * @param indices
+	 *            the indices
+	 * @param types
+	 *            the types
+	 * @return the search response
+	 */
+	public SearchResponse searchAll(String[] indices, String[] types) {
+		return searchAll(indices, types, null, null);
+	}
+
+	/**
+	 * Search all.
+	 *
+	 * @param indices
+	 *            the indices
+	 * @param type
+	 *            the type
+	 * @return the search response
+	 */
+	public SearchResponse searchAll(String[] indices, String type) {
+		return searchAll(indices, JMArrays.buildArray(type));
 	}
 
 	/**
@@ -621,11 +696,17 @@ public class JMElasticsearchSearchAndCount {
 	 *            the index
 	 * @param type
 	 *            the type
+	 * @param filterQueryBuilder
+	 *            the filter query builder
+	 * @param aggregationBuilders
+	 *            the aggregation builders
 	 * @return the search response
 	 */
-	public SearchResponse searchAll(String index, String type) {
-		return searchQuery(
-				getSearchRequestBuilder(false, index).setTypes(type));
+	public SearchResponse searchAll(String index, String type,
+			QueryBuilder filterQueryBuilder,
+			AggregationBuilder[] aggregationBuilders) {
+		return searchAll(JMArrays.buildArray(index), JMArrays.buildArray(type),
+				filterQueryBuilder, aggregationBuilders);
 	}
 
 	/**
@@ -635,168 +716,42 @@ public class JMElasticsearchSearchAndCount {
 	 *            the index
 	 * @param type
 	 *            the type
-	 * @param filterBuilder
-	 *            the filter builder
+	 * @param filterQueryBuilder
+	 *            the filter query builder
 	 * @return the search response
 	 */
 	public SearchResponse searchAll(String index, String type,
-			FilterBuilder filterBuilder) {
-		return searchQuery(getSearchRequestBuilderWithMatchAll(false, index,
-				type, filterBuilder));
+			QueryBuilder filterQueryBuilder) {
+		return searchAll(index, type, filterQueryBuilder, null);
 	}
 
 	/**
 	 * Search all.
 	 *
-	 * @param indices
-	 *            the indices
+	 * @param index
+	 *            the index
+	 * @param type
+	 *            the type
+	 * @param aggregationBuilders
+	 *            the aggregation builders
+	 * @return the search response
+	 */
+	public SearchResponse searchAll(String index, String type,
+			AggregationBuilder[] aggregationBuilders) {
+		return searchAll(index, type, null, aggregationBuilders);
+	}
+
+	/**
+	 * Search all.
+	 *
+	 * @param index
+	 *            the index
 	 * @param type
 	 *            the type
 	 * @return the search response
 	 */
-	public SearchResponse searchAll(String[] indices, String type) {
-		return searchQuery(
-				getSearchRequestBuilder(false, indices).setTypes(type));
-	}
-
-	/**
-	 * Search all.
-	 *
-	 * @param indices
-	 *            the indices
-	 * @param types
-	 *            the types
-	 * @return the search response
-	 */
-	public SearchResponse searchAll(String[] indices, String[] types) {
-		return searchAll(false, indices, types);
-	}
-
-	/**
-	 * Search all.
-	 *
-	 * @param indices
-	 *            the indices
-	 * @param types
-	 *            the types
-	 * @param fields
-	 *            the fields
-	 * @return the search response
-	 */
-	public SearchResponse searchAll(String[] indices, String[] types,
-			String[] fields) {
-		return searchAll(false, indices, types, fields);
-	}
-
-	/**
-	 * Search all.
-	 *
-	 * @param indices
-	 *            the indices
-	 * @param types
-	 *            the types
-	 * @param filterBuilder
-	 *            the filter builder
-	 * @return the search response
-	 */
-	public SearchResponse searchAll(String[] indices, String[] types,
-			FilterBuilder filterBuilder) {
-		return searchAll(false, indices, types, filterBuilder);
-	}
-
-	/**
-	 * Search all.
-	 *
-	 * @param indices
-	 *            the indices
-	 * @param types
-	 *            the types
-	 * @param fields
-	 *            the fields
-	 * @param filterBuilder
-	 *            the filter builder
-	 * @return the search response
-	 */
-	public SearchResponse searchAll(String[] indices, String[] types,
-			String[] fields, FilterBuilder filterBuilder) {
-		return searchAll(false, indices, types, fields, filterBuilder);
-	}
-
-	/**
-	 * Search all.
-	 *
-	 * @param indices
-	 *            the indices
-	 * @param types
-	 *            the types
-	 * @param aggregationBuilders
-	 *            the aggregation builders
-	 * @return the search response
-	 */
-	public SearchResponse searchAll(String[] indices, String[] types,
-			AbstractAggregationBuilder... aggregationBuilders) {
-		return searchAll(false, indices, types, aggregationBuilders);
-	}
-
-	/**
-	 * Search all.
-	 *
-	 * @param indices
-	 *            the indices
-	 * @param types
-	 *            the types
-	 * @param fields
-	 *            the fields
-	 * @param aggregationBuilders
-	 *            the aggregation builders
-	 * @return the search response
-	 */
-	public SearchResponse searchAll(String[] indices, String[] types,
-			String[] fields,
-			AbstractAggregationBuilder... aggregationBuilders) {
-		return searchAll(false, indices, types, fields, aggregationBuilders);
-	}
-
-	/**
-	 * Search all.
-	 *
-	 * @param indices
-	 *            the indices
-	 * @param types
-	 *            the types
-	 * @param filterBuilder
-	 *            the filter builder
-	 * @param aggregationBuilders
-	 *            the aggregation builders
-	 * @return the search response
-	 */
-	public SearchResponse searchAll(String[] indices, String[] types,
-			FilterBuilder filterBuilder,
-			AbstractAggregationBuilder... aggregationBuilders) {
-		return searchAll(false, indices, types, filterBuilder,
-				aggregationBuilders);
-	}
-
-	/**
-	 * Search all.
-	 *
-	 * @param indices
-	 *            the indices
-	 * @param types
-	 *            the types
-	 * @param fields
-	 *            the fields
-	 * @param filterBuilder
-	 *            the filter builder
-	 * @param aggregationBuilders
-	 *            the aggregation builders
-	 * @return the search response
-	 */
-	public SearchResponse searchAll(String[] indices, String[] types,
-			String[] fields, FilterBuilder filterBuilder,
-			AbstractAggregationBuilder... aggregationBuilders) {
-		return searchAll(false, indices, types, fields, filterBuilder,
-				aggregationBuilders);
+	public SearchResponse searchAll(String index, String type) {
+		return searchAll(JMArrays.buildArray(index), type);
 	}
 
 	/**
@@ -806,13 +761,28 @@ public class JMElasticsearchSearchAndCount {
 	 *            the indices
 	 * @param types
 	 *            the types
+	 * @param fields
+	 *            the fields
+	 * @param filterQueryBuilder
+	 *            the filter query builder
+	 * @param aggregationBuilders
+	 *            the aggregation builders
 	 * @return the search response
 	 */
 	public SearchResponse searchAllWithTargetCount(String[] indices,
+			String[] types, String[] fields, QueryBuilder filterQueryBuilder,
+			AggregationBuilder[] aggregationBuilders) {
+		return searchQuery(getSearchRequestBuilderWithCount(
+				getSearchRequestBuilderWithMatchAll(false, indices, types,
+						fields, filterQueryBuilder, aggregationBuilders),
+				indices, types));
+	}
+
+	private SearchRequestBuilder getSearchRequestBuilderWithCount(
+			SearchRequestBuilder searchRequestBuilder, String[] indices,
 			String[] types) {
-		return searchQuery(getSearchRequestBuilderWithCount(
-				getSearchRequestBuilderWithMatchAll(false, indices, types),
-				indices, types));
+		return searchRequestBuilder
+				.setSize(Long.valueOf(count(indices, types)).intValue());
 	}
 
 	/**
@@ -824,73 +794,14 @@ public class JMElasticsearchSearchAndCount {
 	 *            the types
 	 * @param fields
 	 *            the fields
+	 * @param filterQueryBuilder
+	 *            the filter query builder
 	 * @return the search response
 	 */
 	public SearchResponse searchAllWithTargetCount(String[] indices,
-			String[] types, String[] fields) {
-		return searchQuery(getSearchRequestBuilderWithCount(
-				getSearchRequestBuilderWithMatchAll(false, indices, types,
-						fields),
-				indices, types));
-	}
-
-	/**
-	 * Search all with target count.
-	 *
-	 * @param indices
-	 *            the indices
-	 * @param types
-	 *            the types
-	 * @param filterBuilder
-	 *            the filter builder
-	 * @return the search response
-	 */
-	public SearchResponse searchAllWithTargetCount(String[] indices,
-			String[] types, FilterBuilder filterBuilder) {
-		return searchQuery(getSearchRequestBuilderWithCount(
-				getSearchRequestBuilderWithMatchAll(false, indices, types,
-						filterBuilder),
-				indices, types));
-	}
-
-	/**
-	 * Search all with target count.
-	 *
-	 * @param indices
-	 *            the indices
-	 * @param types
-	 *            the types
-	 * @param fields
-	 *            the fields
-	 * @param filterBuilder
-	 *            the filter builder
-	 * @return the search response
-	 */
-	public SearchResponse searchAllWithTargetCount(String[] indices,
-			String[] types, String[] fields, FilterBuilder filterBuilder) {
-		return searchQuery(getSearchRequestBuilderWithCount(
-				getSearchRequestBuilderWithMatchAll(false, indices, types,
-						fields, filterBuilder),
-				indices, types));
-	}
-
-	/**
-	 * Search all with target count.
-	 *
-	 * @param indices
-	 *            the indices
-	 * @param types
-	 *            the types
-	 * @param aggregationBuilders
-	 *            the aggregation builders
-	 * @return the search response
-	 */
-	public SearchResponse searchAllWithTargetCount(String[] indices,
-			String[] types, AbstractAggregationBuilder... aggregationBuilders) {
-		return searchQuery(getSearchRequestBuilderWithCount(
-				getSearchRequestBuilderWithMatchAll(false, indices, types,
-						aggregationBuilders),
-				indices, types));
+			String[] types, String[] fields, QueryBuilder filterQueryBuilder) {
+		return searchAllWithTargetCount(indices, types, fields,
+				filterQueryBuilder, null);
 	}
 
 	/**
@@ -908,35 +819,9 @@ public class JMElasticsearchSearchAndCount {
 	 */
 	public SearchResponse searchAllWithTargetCount(String[] indices,
 			String[] types, String[] fields,
-			AbstractAggregationBuilder... aggregationBuilders) {
-		return searchQuery(
-				getSearchRequestBuilderWithCount(
-						getSearchRequestBuilderWithMatchAll(false, indices,
-								types, fields, aggregationBuilders),
-						indices, types));
-	}
-
-	/**
-	 * Search all with target count.
-	 *
-	 * @param indices
-	 *            the indices
-	 * @param types
-	 *            the types
-	 * @param filterBuilder
-	 *            the filter builder
-	 * @param aggregationBuilders
-	 *            the aggregation builders
-	 * @return the search response
-	 */
-	public SearchResponse searchAllWithTargetCount(String[] indices,
-			String[] types, FilterBuilder filterBuilder,
-			AbstractAggregationBuilder... aggregationBuilders) {
-		return searchQuery(
-				getSearchRequestBuilderWithCount(
-						getSearchRequestBuilderWithMatchAll(false, indices,
-								types, filterBuilder, aggregationBuilders),
-						indices, types));
+			AggregationBuilder[] aggregationBuilders) {
+		return searchAllWithTargetCount(indices, types, fields, null,
+				aggregationBuilders);
 	}
 
 	/**
@@ -948,43 +833,156 @@ public class JMElasticsearchSearchAndCount {
 	 *            the types
 	 * @param fields
 	 *            the fields
-	 * @param filterBuilder
-	 *            the filter builder
+	 * @return the search response
+	 */
+	public SearchResponse searchAllWithTargetCount(String[] indices,
+			String[] types, String[] fields) {
+		return searchAllWithTargetCount(indices, types, fields, null, null);
+	}
+
+	/**
+	 * Search all with target count.
+	 *
+	 * @param indices
+	 *            the indices
+	 * @param types
+	 *            the types
+	 * @return the search response
+	 */
+	public SearchResponse searchAllWithTargetCount(String[] indices,
+			String[] types) {
+		return searchAllWithTargetCount(indices, types, null, null, null);
+	}
+
+	/**
+	 * Search all with target count.
+	 *
+	 * @param indices
+	 *            the indices
+	 * @param types
+	 *            the types
+	 * @param filterQueryBuilder
+	 *            the filter query builder
 	 * @param aggregationBuilders
 	 *            the aggregation builders
 	 * @return the search response
 	 */
 	public SearchResponse searchAllWithTargetCount(String[] indices,
-			String[] types, String[] fields, FilterBuilder filterBuilder,
-			AbstractAggregationBuilder... aggregationBuilders) {
-		return searchQuery(getSearchRequestBuilderWithCount(
-				getSearchRequestBuilderWithMatchAll(false, indices, types,
-						fields, filterBuilder, aggregationBuilders),
-				indices, types));
-	}
-
-	private SearchRequestBuilder getSearchRequestBuilderWithCount(
-			SearchRequestBuilder searchRequestBuilder, String[] indices,
-			String[] types) {
-		return searchRequestBuilder
-				.setSize(Long.valueOf(count(indices, types)).intValue());
+			String[] types, QueryBuilder filterQueryBuilder,
+			AggregationBuilder[] aggregationBuilders) {
+		return searchAllWithTargetCount(indices, types, null,
+				filterQueryBuilder, aggregationBuilders);
 	}
 
 	/**
-	 * Search all with field.
+	 * Search all with target count.
+	 *
+	 * @param indices
+	 *            the indices
+	 * @param types
+	 *            the types
+	 * @param filterQueryBuilder
+	 *            the filter query builder
+	 * @return the search response
+	 */
+	public SearchResponse searchAllWithTargetCount(String[] indices,
+			String[] types, QueryBuilder filterQueryBuilder) {
+		return searchAllWithTargetCount(indices, types, filterQueryBuilder,
+				null);
+	}
+
+	/**
+	 * Search all with target count.
+	 *
+	 * @param indices
+	 *            the indices
+	 * @param types
+	 *            the types
+	 * @param aggregationBuilders
+	 *            the aggregation builders
+	 * @return the search response
+	 */
+	public SearchResponse searchAllWithTargetCount(String[] indices,
+			String[] types, AggregationBuilder[] aggregationBuilders) {
+		return searchAllWithTargetCount(indices, types, null, null,
+				aggregationBuilders);
+	}
+
+	/**
+	 * Search all with target count.
 	 *
 	 * @param index
 	 *            the index
 	 * @param type
 	 *            the type
-	 * @param fields
-	 *            the fields
+	 * @param filterQueryBuilder
+	 *            the filter query builder
+	 * @param aggregationBuilders
+	 *            the aggregation builders
 	 * @return the search response
 	 */
-	public SearchResponse searchAllWithField(String index, String type,
-			String... fields) {
-		return searchQuery(getSearchRequestBuilder(false, index).setTypes(type)
-				.addFields(fields));
+	public SearchResponse searchAllWithTargetCount(String index, String type,
+			QueryBuilder filterQueryBuilder,
+			AggregationBuilder[] aggregationBuilders) {
+		return searchAllWithTargetCount(JMArrays.buildArray(index),
+				JMArrays.buildArray(type), filterQueryBuilder,
+				aggregationBuilders);
+	}
+
+	/**
+	 * Search all with target count.
+	 *
+	 * @param index
+	 *            the index
+	 * @param type
+	 *            the type
+	 * @param filterQueryBuilder
+	 *            the filter query builder
+	 * @return the search response
+	 */
+	public SearchResponse searchAllWithTargetCount(String index, String type,
+			QueryBuilder filterQueryBuilder) {
+		return searchAllWithTargetCount(index, type, filterQueryBuilder, null);
+	}
+
+	/**
+	 * Search all with target count.
+	 *
+	 * @param index
+	 *            the index
+	 * @param type
+	 *            the type
+	 * @param aggregationBuilders
+	 *            the aggregation builders
+	 * @return the search response
+	 */
+	public SearchResponse searchAllWithTargetCount(String index, String type,
+			AggregationBuilder[] aggregationBuilders) {
+		return searchAllWithTargetCount(index, type, null, aggregationBuilders);
+	}
+
+	/**
+	 * Search all with target count.
+	 *
+	 * @param index
+	 *            the index
+	 * @param type
+	 *            the type
+	 * @return the search response
+	 */
+	public SearchResponse searchAllWithTargetCount(String index, String type) {
+		return searchAllWithTargetCount(index, type, null, null);
+	}
+
+	/**
+	 * Search all with target count.
+	 *
+	 * @param indices
+	 *            the indices
+	 * @return the search response
+	 */
+	public SearchResponse searchAllWithTargetCount(String... indices) {
+		return searchAllWithTargetCount(indices, null);
 	}
 
 	/**
@@ -1005,11 +1003,13 @@ public class JMElasticsearchSearchAndCount {
 	 *
 	 * @param countRequestBuilder
 	 *            the count request builder
-	 * @return the count response
+	 * @return the long
 	 */
-	public CountResponse countQuery(CountRequestBuilder countRequestBuilder) {
+	public long countQuery(SearchRequestBuilder countRequestBuilder) {
+		countRequestBuilder.setSize(0);
 		return JMElastricsearchUtil.logExcuteAndReturn("countQuery",
-				countRequestBuilder, countRequestBuilder.execute());
+				countRequestBuilder, countRequestBuilder.execute()).getHits()
+				.totalHits();
 	}
 
 	/**
@@ -1020,8 +1020,7 @@ public class JMElasticsearchSearchAndCount {
 	 * @return the long
 	 */
 	public long count(String... indices) {
-		return countQuery(esClient.prepareCount(indices)
-				.setQuery(QueryBuilders.matchAllQuery())).getCount();
+		return countQuery(getSearchRequestBuilderWithMatchAll(false, indices));
 	}
 
 	/**
@@ -1034,8 +1033,8 @@ public class JMElasticsearchSearchAndCount {
 	 * @return the long
 	 */
 	public long count(String[] indices, String[] types) {
-		return countQuery(esClient.prepareCount(indices).setTypes(types))
-				.getCount();
+		return countQuery(
+				getSearchRequestBuilderWithMatchAll(false, indices, types));
 	}
 
 }

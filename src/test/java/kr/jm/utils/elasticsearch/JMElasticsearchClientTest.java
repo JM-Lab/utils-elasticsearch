@@ -15,13 +15,11 @@ import org.elasticsearch.action.bulk.BulkResponse;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.cluster.metadata.MappingMetaData;
 import org.elasticsearch.common.collect.ImmutableOpenMap;
-import org.elasticsearch.index.query.FilterBuilder;
-import org.elasticsearch.index.query.FilterBuilders;
-import org.elasticsearch.index.query.RangeFilterBuilder;
-import org.elasticsearch.node.Node;
-import org.elasticsearch.node.NodeBuilder;
+import org.elasticsearch.index.query.QueryBuilder;
+import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.aggregations.AbstractAggregationBuilder;
+import org.elasticsearch.search.aggregations.AggregationBuilder;
 import org.elasticsearch.search.aggregations.AggregationBuilders;
 import org.junit.After;
 import org.junit.Before;
@@ -40,10 +38,9 @@ public class JMElasticsearchClientTest {
 		System.setProperty("org.slf4j.simpleLogger.defaultLogLevel", "DEBUG");
 	}
 
-	private Node elasticsearch;
+	private JMEmbededElastricsearch jmEmbededElasticsearch;
 
 	private JMElasticsearchClient jmElasticsearchClient;
-	private JMElasticsearchClient jmElasticsearchNodeClient;
 
 	/**
 	 * Sets the up.
@@ -53,30 +50,20 @@ public class JMElasticsearchClientTest {
 	 */
 	@Before
 	public void setUp() throws Exception {
-		// your cluster name
-		String clusterName = "elasticsearch";
-		// Elasticsearch local data node start
-		this.elasticsearch = NodeBuilder.nodeBuilder().clusterName(clusterName)
-				.build().start();
+		// Embeded Elasticsearch Node Start
+		this.jmEmbededElasticsearch = new JMEmbededElastricsearch();
+		this.jmEmbededElasticsearch.start();
 
-		String ipPortInCsv = "localhost:9300,127.0.0.1:9300";
+		// JMElasticsearchClient Init
+		this.jmElasticsearchClient = new JMElasticsearchClient(
+				this.jmEmbededElasticsearch.getTransportIpPortPair());
 
-		// transportClient init
-		this.jmElasticsearchClient = new JMElasticsearchClient(ipPortInCsv);
-
-		// nodeClient init with unicast
-		boolean isTransportClient = false; // false means nodeClient
-		this.jmElasticsearchNodeClient = new JMElasticsearchClient(
-				isTransportClient, ipPortInCsv, clusterName);
-
-		// set to -1 to disable it
+		// Bulk Processor Setting
 		int bulkActions = 3;
-		// set to -1 to disable it, ex) 100KB, 1m, 1gb or 1g ...
-		String bulkSize = "1MB";
+		long bulkSizeKB = 5 * 1024;
 		int flushIntervalSeconds = 5;
-		this.jmElasticsearchClient.setBulkProcessor(bulkActions, bulkSize,
+		this.jmElasticsearchClient.setBulkProcessor(bulkActions, bulkSizeKB,
 				flushIntervalSeconds);
-
 	}
 
 	/**
@@ -87,14 +74,13 @@ public class JMElasticsearchClientTest {
 	 */
 	@After
 	public void tearDown() throws Exception {
-		JMOptional.getOptional(jmElasticsearchNodeClient.getAllIndices())
-				.ifPresent(indices -> jmElasticsearchNodeClient.deleteIndices(
+		JMOptional.getOptional(jmElasticsearchClient.getAllIndices())
+				.ifPresent(indices -> jmElasticsearchClient.deleteIndices(
 						indices.toArray(new String[indices.size()])));
 		while (jmElasticsearchClient.getAllIndices().size() > 0)
 			JMThread.sleep(1000);
 		jmElasticsearchClient.close();
-		jmElasticsearchNodeClient.close();
-		elasticsearch.stop();
+		jmEmbededElasticsearch.close();
 	}
 
 	/**
@@ -105,7 +91,7 @@ public class JMElasticsearchClientTest {
 	 */
 	@Test
 	public void testGetQueryAllIndices() throws Exception {
-		Map<String, Object> sourceObject = new HashMap<String, Object>();
+		Map<String, Object> sourceObject = new HashMap<>();
 		sourceObject.put("key", "test");
 		String index = "client-test";
 		String type = "testType";
@@ -124,18 +110,18 @@ public class JMElasticsearchClientTest {
 	 */
 	@Test
 	public final void test() {
-		Map<String, Object> sourceObject = new HashMap<String, Object>();
+		Map<String, Object> sourceObject = new HashMap<>();
 		sourceObject.put("key", "test");
 		String index = "client-test";
 		String type = "testType";
 		String type2 = "testType2";
 
-		if (!jmElasticsearchNodeClient.isExists(index))
-			assertTrue(jmElasticsearchNodeClient.create(index));
-		jmElasticsearchNodeClient.sendDataWithObjectMapper(sourceObject, index,
+		if (!jmElasticsearchClient.isExists(index))
+			assertTrue(jmElasticsearchClient.create(index));
+		jmElasticsearchClient.sendDataWithObjectMapper(sourceObject, index,
 				type);
-		System.out.println(jmElasticsearchNodeClient.count(index));
-		System.out.println(jmElasticsearchNodeClient.searchAll(index));
+		System.out.println(jmElasticsearchClient.count(index));
+		System.out.println(jmElasticsearchClient.searchAll(index));
 		String id = jmElasticsearchClient.sendDataWithObjectMapper(sourceObject,
 				index, type2);
 		System.out.println(id);
@@ -143,21 +129,20 @@ public class JMElasticsearchClientTest {
 		String[] types = { type, type2 };
 		String[] types1 = { type2 };
 		assertEquals(
-				jmElasticsearchNodeClient.searchAll(indices, types).getHits()
+				jmElasticsearchClient.searchAll(indices, types).getHits()
 						.getHits().length,
-				jmElasticsearchNodeClient.searchAll(index).getHits()
+				jmElasticsearchClient.searchAll(index).getHits()
 						.getHits().length);
-		System.out
-				.println(jmElasticsearchNodeClient.searchAll(indices, types1));
+		System.out.println(jmElasticsearchClient.searchAll(indices, types1));
 
-		jmElasticsearchNodeClient.sendDataWithObjectMapper(sourceObject, index,
+		jmElasticsearchClient.sendDataWithObjectMapper(sourceObject, index,
 				type, id);
-		System.out.println(jmElasticsearchNodeClient.count(index));
+		System.out.println(jmElasticsearchClient.count(index));
 
-		jmElasticsearchNodeClient.sendDataWithObjectMapper(sourceObject, index,
+		jmElasticsearchClient.sendDataWithObjectMapper(sourceObject, index,
 				type2, id);
-		System.out.println(jmElasticsearchNodeClient.count(index));
-		System.out.println(jmElasticsearchNodeClient.count(indices, types1));
+		System.out.println(jmElasticsearchClient.count(index));
+		System.out.println(jmElasticsearchClient.count(indices, types1));
 
 	}
 
@@ -166,7 +151,7 @@ public class JMElasticsearchClientTest {
 	 */
 	@Test
 	public final void testIndexStatus() {
-		Map<String, Object> sourceObject = new HashMap<String, Object>();
+		Map<String, Object> sourceObject = new HashMap<>();
 		sourceObject.put("key", "test");
 		String index = "test-2015.03.25";
 		String[] indices = { index };
@@ -198,18 +183,18 @@ public class JMElasticsearchClientTest {
 		String test400 = "test_400";
 		String[] sumFields = { test30, test400 };
 
-		Map<String, Object> sourceObject = new HashMap<String, Object>();
+		Map<String, Object> sourceObject = new HashMap<>();
 		String timestamp = "@timestamp";
 		sourceObject.put(timestamp, "2015-05-12T00:59:00Z");
 		sourceObject.put(test30, 30);
 		sourceObject.put(test400, 400);
 
-		Map<String, Object> sourceObject2 = new HashMap<String, Object>();
+		Map<String, Object> sourceObject2 = new HashMap<>();
 		sourceObject2.put(timestamp, "2015-05-12T00:59:02Z");
 		sourceObject2.put(test30, 30);
 		sourceObject2.put(test400, 400);
 
-		Map<String, Object> sourceObject3 = new HashMap<String, Object>();
+		Map<String, Object> sourceObject3 = new HashMap<>();
 		sourceObject3.put(timestamp, "2015-05-12T01:00:00Z");
 		sourceObject3.put(test30, 30);
 		sourceObject3.put(test400, 400);
@@ -226,27 +211,27 @@ public class JMElasticsearchClientTest {
 				jmElasticsearchClient.searchAll(indices, types);
 		System.out.println(searchResponse1);
 
-		AbstractAggregationBuilder[] sumAggregationBuilders =
+		AggregationBuilder[] sumAggregationBuilders =
 				new AbstractAggregationBuilder[sumFields.length];
 		for (int i = 0; i < sumFields.length; i++)
 			sumAggregationBuilders[i] =
 					AggregationBuilders.stats(sumFields[i]).field(sumFields[i]);
 		searchResponse1 = jmElasticsearchClient.searchAll(indices, types,
 				sumAggregationBuilders);
-		assertTrue(searchResponse1.toString().contains("\"count\" : 3"));
-		assertTrue(searchResponse1.toString().contains("\"sum\" : 90.0"));
-		RangeFilterBuilder dataRangeFilter =
-				FilterBuilders.rangeFilter(timestamp)
-						.gte("2015-05-12T00:59:00Z").lt("2015-05-12T01:00:00Z");
+		System.out.println(searchResponse1);
+		assertTrue(searchResponse1.toString().contains("\"count\":3"));
+		assertTrue(searchResponse1.toString().contains("\"sum\":90.0"));
+		QueryBuilder dataRangeFilter = QueryBuilders.rangeQuery(timestamp)
+				.gte("2015-05-12T00:59:00Z").lt("2015-05-12T01:00:00Z");
 		System.out.println(jmElasticsearchClient.searchAll(indices));
 		searchResponse1 = jmElasticsearchClient.searchAll(indices, types,
 				dataRangeFilter);
-		assertTrue(searchResponse1.toString().contains("\"total\" : 2"));
+		assertTrue(searchResponse1.toString().contains("\"total\":2"));
 
 		searchResponse1 = jmElasticsearchClient.searchAll(indices, types,
 				dataRangeFilter, sumAggregationBuilders);
-		assertTrue(searchResponse1.toString().contains("\"count\" : 2"));
-		assertTrue(searchResponse1.toString().contains("\"sum\" : 60.0"));
+		assertTrue(searchResponse1.toString().contains("\"count\":2"));
+		assertTrue(searchResponse1.toString().contains("\"sum\":60.0"));
 
 	}
 
@@ -278,7 +263,7 @@ public class JMElasticsearchClientTest {
 				jmElasticsearchClient.getFilteredIndexList(containedString);
 		System.out.println(indexList);
 
-		Map<String, Object> sourceObject = new HashMap<String, Object>();
+		Map<String, Object> sourceObject = new HashMap<>();
 		sourceObject.put("key", "test");
 		String index = "test-2015.03.25";
 		String type = "test";
@@ -287,8 +272,8 @@ public class JMElasticsearchClientTest {
 			assertTrue(jmElasticsearchClient.create(index));
 		jmElasticsearchClient.sendData(sourceObject, index, type);
 
-		JMOptional.getOptional(jmElasticsearchNodeClient.getAllIndices())
-				.ifPresent(indices -> jmElasticsearchNodeClient.deleteIndices(
+		JMOptional.getOptional(jmElasticsearchClient.getAllIndices())
+				.ifPresent(indices -> jmElasticsearchClient.deleteIndices(
 						indices.toArray(new String[indices.size()])));
 		JMThread.sleep(1000);
 		allIndexList = jmElasticsearchClient.getAllIndices();
@@ -314,18 +299,18 @@ public class JMElasticsearchClientTest {
 		String test400 = "test_400";
 		String test500 = "test_500";
 
-		Map<String, Object> sourceObject = new HashMap<String, Object>();
+		Map<String, Object> sourceObject = new HashMap<>();
 		String timestamp = "@timestamp";
 		sourceObject.put(timestamp, "2015-05-12T00:59:00Z");
 		sourceObject.put(test30, 30);
 		sourceObject.put(test400, 400);
 
-		Map<String, Object> sourceObject2 = new HashMap<String, Object>();
+		Map<String, Object> sourceObject2 = new HashMap<>();
 		sourceObject2.put(timestamp, "2015-05-12T00:59:02Z");
 		sourceObject2.put(test30, 30);
 		sourceObject2.put(test400, 400);
 
-		Map<String, Object> sourceObject3 = new HashMap<String, Object>();
+		Map<String, Object> sourceObject3 = new HashMap<>();
 		sourceObject3.put(timestamp, "2015-05-12T01:00:00Z");
 		sourceObject3.put(test30, 30);
 		sourceObject3.put(test400, 400);
@@ -381,18 +366,18 @@ public class JMElasticsearchClientTest {
 		String test30 = "test_30";
 		String test400 = "test_400";
 
-		Map<String, Object> sourceObject = new HashMap<String, Object>();
+		Map<String, Object> sourceObject = new HashMap<>();
 		String timestamp = "@timestamp";
 		sourceObject.put(timestamp, "2015-05-12T00:59:00Z");
 		sourceObject.put(test30, 30);
 		sourceObject.put(test400, 400);
 
-		Map<String, Object> sourceObject2 = new HashMap<String, Object>();
+		Map<String, Object> sourceObject2 = new HashMap<>();
 		sourceObject2.put(timestamp, "2015-05-12T00:59:02Z");
 		sourceObject2.put(test30, 30);
 		sourceObject2.put(test400, 400);
 
-		Map<String, Object> sourceObject3 = new HashMap<String, Object>();
+		Map<String, Object> sourceObject3 = new HashMap<>();
 		sourceObject3.put(timestamp, "2015-05-12T01:00:00Z");
 		sourceObject3.put(test30, 30);
 		sourceObject3.put(test400, 400);
@@ -429,18 +414,18 @@ public class JMElasticsearchClientTest {
 		String test400 = "test_400";
 		String test500 = "test_500";
 
-		Map<String, Object> sourceObject = new HashMap<String, Object>();
+		Map<String, Object> sourceObject = new HashMap<>();
 		String timestamp = "@timestamp";
 		sourceObject.put(timestamp, "2015-05-12T00:59:00Z");
 		sourceObject.put(test30, 30);
 		sourceObject.put(test400, 400);
 
-		Map<String, Object> sourceObject2 = new HashMap<String, Object>();
+		Map<String, Object> sourceObject2 = new HashMap<>();
 		sourceObject2.put(timestamp, "2015-05-12T00:59:02Z");
 		sourceObject2.put(test30, 30);
 		sourceObject2.put(test400, 400);
 
-		Map<String, Object> sourceObject3 = new HashMap<String, Object>();
+		Map<String, Object> sourceObject3 = new HashMap<>();
 		sourceObject3.put(timestamp, "2015-05-12T01:00:00Z");
 		sourceObject3.put(test30, 30);
 		sourceObject3.put(test400, 400);
@@ -478,18 +463,18 @@ public class JMElasticsearchClientTest {
 		String test400 = "test_400";
 		String test500 = "test_500";
 
-		Map<String, Object> sourceObject = new HashMap<String, Object>();
+		Map<String, Object> sourceObject = new HashMap<>();
 		String timestamp = "@timestamp";
 		sourceObject.put(timestamp, "2015-05-12T00:59:00Z");
 		sourceObject.put(test30, 30);
 		sourceObject.put(test400, 400);
 
-		Map<String, Object> sourceObject2 = new HashMap<String, Object>();
+		Map<String, Object> sourceObject2 = new HashMap<>();
 		sourceObject2.put(timestamp, "2015-05-12T00:59:02Z");
 		sourceObject2.put(test30, 30);
 		sourceObject2.put(test400, 400);
 
-		Map<String, Object> sourceObject3 = new HashMap<String, Object>();
+		Map<String, Object> sourceObject3 = new HashMap<>();
 		sourceObject3.put(timestamp, "2015-05-12T01:00:00Z");
 		sourceObject3.put(test30, 30);
 		sourceObject3.put(test400, 400);
@@ -503,10 +488,10 @@ public class JMElasticsearchClientTest {
 		SearchResponse searchResponse1 = jmElasticsearchClient.searchAll(index);
 		System.out.println(searchResponse1);
 
-		FilterBuilder filter = FilterBuilders.rangeFilter(timestamp)
+		QueryBuilder filterQueryBuilder = QueryBuilders.rangeQuery(timestamp)
 				.gte("2015-05-12T00:59:00Z").lt("2015-05-12T01:00:00Z");
-		BulkResponse deleteDocs =
-				jmElasticsearchNodeClient.deleteBulkDocs(index, type, filter);
+		BulkResponse deleteDocs = jmElasticsearchClient.deleteBulkDocs(index,
+				type, filterQueryBuilder);
 		assertFalse(deleteDocs.hasFailures());
 
 		JMThread.sleep(3000);
@@ -514,8 +499,9 @@ public class JMElasticsearchClientTest {
 		System.out.println(searchResponse1);
 		assertEquals(1, searchResponse1.getHits().hits().length);
 
-		filter = FilterBuilders.existsFilter(test500);
-		jmElasticsearchNodeClient.deleteBulkDocsAsync(index, type, filter);
+		filterQueryBuilder = QueryBuilders.existsQuery(test500);
+		jmElasticsearchClient.deleteBulkDocsAsync(index, type,
+				filterQueryBuilder);
 		JMThread.sleep(3000);
 
 		searchResponse1 = jmElasticsearchClient.searchAll(index, type);
@@ -526,6 +512,12 @@ public class JMElasticsearchClientTest {
 
 	}
 
+	/**
+	 * Test delete doc bulk docs with multi.
+	 *
+	 * @throws Exception
+	 *             the exception
+	 */
 	@Test
 	public void testDeleteDocBulkDocsWithMulti() throws Exception {
 		String index = "test-2015.05.12";
@@ -534,18 +526,18 @@ public class JMElasticsearchClientTest {
 		String test400 = "test_400";
 		String test500 = "test_500";
 
-		Map<String, Object> sourceObject = new HashMap<String, Object>();
+		Map<String, Object> sourceObject = new HashMap<>();
 		String timestamp = "@timestamp";
 		sourceObject.put(timestamp, "2015-05-12T00:59:00Z");
 		sourceObject.put(test30, 30);
 		sourceObject.put(test400, 400);
 
-		Map<String, Object> sourceObject2 = new HashMap<String, Object>();
+		Map<String, Object> sourceObject2 = new HashMap<>();
 		sourceObject2.put(timestamp, "2015-05-12T00:59:02Z");
 		sourceObject2.put(test30, 30);
 		sourceObject2.put(test400, 400);
 
-		Map<String, Object> sourceObject3 = new HashMap<String, Object>();
+		Map<String, Object> sourceObject3 = new HashMap<>();
 		sourceObject3.put(timestamp, "2015-05-12T01:00:00Z");
 		sourceObject3.put(test30, 30);
 		sourceObject3.put(test400, 400);
@@ -559,9 +551,9 @@ public class JMElasticsearchClientTest {
 		SearchResponse searchResponse1 = jmElasticsearchClient.searchAll(index);
 		System.out.println(searchResponse1);
 
-		FilterBuilder filter = FilterBuilders.rangeFilter(timestamp)
+		QueryBuilder filter = QueryBuilders.rangeQuery(timestamp)
 				.gte("2015-05-12T00:59:00Z").lt("2015-05-12T01:00:00Z");
-		boolean deleteDocs = jmElasticsearchNodeClient.deleteBulkDocs(
+		boolean deleteDocs = jmElasticsearchClient.deleteBulkDocs(
 				JMCollections.buildList(index), JMCollections.buildList(type),
 				filter);
 		assertTrue(deleteDocs);
@@ -571,8 +563,8 @@ public class JMElasticsearchClientTest {
 		System.out.println(searchResponse1);
 		assertEquals(1, searchResponse1.getHits().hits().length);
 
-		filter = FilterBuilders.existsFilter(test500);
-		jmElasticsearchNodeClient.deleteBulkDocsAsync(
+		filter = QueryBuilders.existsQuery(test500);
+		jmElasticsearchClient.deleteBulkDocsAsync(
 				JMCollections.buildList(index), JMCollections.buildList(type),
 				filter);
 		JMThread.sleep(3000);

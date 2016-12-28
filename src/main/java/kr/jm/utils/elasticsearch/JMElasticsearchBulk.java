@@ -1,14 +1,15 @@
 package kr.jm.utils.elasticsearch;
 
 import static java.util.stream.Collectors.toList;
+import static kr.jm.utils.helper.JMOptional.ifNotNull;
 import static kr.jm.utils.helper.JMPredicate.peek;
 
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.TimeUnit;
 
 import org.elasticsearch.action.ActionListener;
+import org.elasticsearch.action.bulk.BackoffPolicy;
 import org.elasticsearch.action.bulk.BulkProcessor;
 import org.elasticsearch.action.bulk.BulkProcessor.Builder;
 import org.elasticsearch.action.bulk.BulkProcessor.Listener;
@@ -18,9 +19,10 @@ import org.elasticsearch.action.bulk.BulkResponse;
 import org.elasticsearch.action.delete.DeleteRequestBuilder;
 import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.action.index.IndexRequestBuilder;
+import org.elasticsearch.common.unit.ByteSizeUnit;
 import org.elasticsearch.common.unit.ByteSizeValue;
 import org.elasticsearch.common.unit.TimeValue;
-import org.elasticsearch.index.query.FilterBuilder;
+import org.elasticsearch.index.query.QueryBuilder;
 
 import kr.jm.utils.exception.JMExceptionManager;
 import kr.jm.utils.helper.JMLog;
@@ -52,7 +54,7 @@ class JMElasticsearchBulk {
 				}
 
 				@Override
-				public void onFailure(Throwable e) {
+				public void onFailure(Exception e) {
 					JMExceptionManager.logException(log, e, "onFailure");
 				}
 			};
@@ -71,7 +73,7 @@ class JMElasticsearchBulk {
 		public void afterBulk(long executionId, BulkRequest bulkRequest,
 				Throwable failure) {
 			JMExceptionManager.logException(log, failure, "afterBulk",
-					executionId, bulkRequest.getHeaders());
+					executionId, bulkRequest.getDescription());
 		}
 
 		@Override
@@ -96,14 +98,14 @@ class JMElasticsearchBulk {
 	 *
 	 * @param bulkActions
 	 *            the bulk actions
-	 * @param bulkSize
-	 *            the bulk size
+	 * @param bulkSizeKB
+	 *            the bulk size KB
 	 * @param flushIntervalSeconds
 	 *            the flush interval seconds
 	 */
-	public void setBulkProcessor(int bulkActions, String bulkSize,
+	public void setBulkProcessor(int bulkActions, long bulkSizeKB,
 			int flushIntervalSeconds) {
-		setBulkProcessor(this.bulkProcessorListener, bulkActions, bulkSize,
+		setBulkProcessor(this.bulkProcessorListener, bulkActions, bulkSizeKB,
 				flushIntervalSeconds);
 	}
 
@@ -114,15 +116,46 @@ class JMElasticsearchBulk {
 	 *            the bulk processor listener
 	 * @param bulkActions
 	 *            the bulk actions
-	 * @param bulkSize
-	 *            the bulk size
+	 * @param bulkSizeKB
+	 *            the bulk size KB
 	 * @param flushIntervalSeconds
 	 *            the flush interval seconds
 	 */
 	public void setBulkProcessor(Listener bulkProcessorListener,
-			int bulkActions, String bulkSize, int flushIntervalSeconds) {
+			int bulkActions, long bulkSizeKB, int flushIntervalSeconds) {
 		this.bulkProcessor = buildBulkProcessor(bulkProcessorListener,
-				bulkActions, bulkSize, flushIntervalSeconds);
+				bulkActions, bulkSizeKB, flushIntervalSeconds);
+	}
+
+	/**
+	 * Gets the bulk processor builder.
+	 *
+	 * @param bulkProcessorListener
+	 *            the bulk processor listener
+	 * @param bulkActions
+	 *            the bulk actions
+	 * @param byteSizeValue
+	 *            the byte size value
+	 * @param flushInterval
+	 *            the flush interval
+	 * @param concurrentRequests
+	 *            the concurrent requests
+	 * @param backoffPolicy
+	 *            the backoff policy
+	 * @return the bulk processor builder
+	 */
+	public Builder getBulkProcessorBuilder(Listener bulkProcessorListener,
+			Integer bulkActions, ByteSizeValue byteSizeValue,
+			TimeValue flushInterval, Integer concurrentRequests,
+			BackoffPolicy backoffPolicy) {
+		Builder builder =
+				BulkProcessor.builder(jmESClient, bulkProcessorListener);
+		ifNotNull(bulkActions, builder::setBulkActions);
+		ifNotNull(byteSizeValue, builder::setBulkSize);
+		ifNotNull(flushInterval, builder::setFlushInterval);
+		ifNotNull(concurrentRequests, builder::setConcurrentRequests);
+		ifNotNull(backoffPolicy, builder::setBackoffPolicy);
+		return builder;
 	}
 
 	/**
@@ -132,22 +165,42 @@ class JMElasticsearchBulk {
 	 *            the bulk processor listener
 	 * @param bulkActions
 	 *            the bulk actions
-	 * @param bulkSize
-	 *            the bulk size
+	 * @param bulkSizeKB
+	 *            the bulk size KB
+	 * @param flushIntervalSeconds
+	 *            the flush interval seconds
+	 * @param concurrentRequests
+	 *            the concurrent requests
+	 * @param backoffPolicy
+	 *            the backoff policy
+	 * @return the bulk processor
+	 */
+	public BulkProcessor buildBulkProcessor(Listener bulkProcessorListener,
+			int bulkActions, long bulkSizeKB, int flushIntervalSeconds,
+			Integer concurrentRequests, BackoffPolicy backoffPolicy) {
+		return getBulkProcessorBuilder(bulkProcessorListener, bulkActions,
+				new ByteSizeValue(bulkSizeKB, ByteSizeUnit.KB),
+				TimeValue.timeValueSeconds(flushIntervalSeconds),
+				concurrentRequests, backoffPolicy).build();
+	}
+
+	/**
+	 * Builds the bulk processor.
+	 *
+	 * @param bulkProcessorListener
+	 *            the bulk processor listener
+	 * @param bulkActions
+	 *            the bulk actions
+	 * @param bulkSizeKB
+	 *            the bulk size KB
 	 * @param flushIntervalSeconds
 	 *            the flush interval seconds
 	 * @return the bulk processor
 	 */
 	public BulkProcessor buildBulkProcessor(Listener bulkProcessorListener,
-			int bulkActions, String bulkSize, int flushIntervalSeconds) {
-		Builder builder = BulkProcessor
-				.builder(jmESClient, bulkProcessorListener)
-				.setBulkActions(bulkActions < 1 ? -1 : bulkActions)
-				.setBulkSize(ByteSizeValue.parseBytesSizeValue(bulkSize));
-		if (flushIntervalSeconds > 0)
-			builder.setFlushInterval(
-					new TimeValue(flushIntervalSeconds, TimeUnit.SECONDS));
-		return builder.build();
+			int bulkActions, long bulkSizeKB, int flushIntervalSeconds) {
+		return buildBulkProcessor(bulkProcessorListener, bulkActions,
+				bulkSizeKB, flushIntervalSeconds, null, null);
 	}
 
 	/**
@@ -359,7 +412,7 @@ class JMElasticsearchBulk {
 	 */
 	public void excuteBulkRequestAsync(BulkRequestBuilder bulkRequestBuilder,
 			ActionListener<BulkResponse> bulkResponseActionListener) {
-		JMLog.infoBeforeStart(log, "excuteBulkRequestAsync", bulkRequestBuilder,
+		JMLog.info(log, "excuteBulkRequestAsync", bulkRequestBuilder,
 				bulkResponseActionListener);
 		bulkRequestBuilder.execute(bulkResponseActionListener);
 	}
@@ -373,7 +426,7 @@ class JMElasticsearchBulk {
 	 */
 	public BulkResponse
 			excuteBulkRequest(BulkRequestBuilder bulkRequestBuilder) {
-		JMLog.infoBeforeStart(log, "excuteBulkRequest", bulkRequestBuilder);
+		JMLog.info(log, "excuteBulkRequest", bulkRequestBuilder);
 		return bulkRequestBuilder.execute().actionGet();
 	}
 
@@ -398,15 +451,15 @@ class JMElasticsearchBulk {
 	 *            the index
 	 * @param type
 	 *            the type
-	 * @param filterBuilder
-	 *            the filter builder
+	 * @param filterQueryBuilder
+	 *            the filter query builder
 	 * @return the bulk response
 	 */
 	public BulkResponse deleteBulkDocs(String index, String type,
-			FilterBuilder filterBuilder) {
+			QueryBuilder filterQueryBuilder) {
 		return excuteBulkRequest(buildDeleteBulkRequestBuilder(
 				buildExtractDeleteRequestBuilderList(index, type,
-						filterBuilder)));
+						filterQueryBuilder)));
 	}
 
 	/**
@@ -416,16 +469,14 @@ class JMElasticsearchBulk {
 	 *            the index list
 	 * @param typeList
 	 *            the type list
-	 * @param filterBuilder
-	 *            the filter builder
+	 * @param filterQueryBuilder
+	 *            the filter query builder
 	 * @return true, if successful
 	 */
 	public boolean deleteBulkDocs(List<String> indexList, List<String> typeList,
-			FilterBuilder filterBuilder) {
-		return indexList.stream()
-				.flatMap(index -> typeList.stream()
-						.map(type -> deleteBulkDocs(index, type,
-								filterBuilder)))
+			QueryBuilder filterQueryBuilder) {
+		return indexList.stream().flatMap(index -> typeList.stream()
+				.map(type -> deleteBulkDocs(index, type, filterQueryBuilder)))
 				.noneMatch(reponse -> reponse.hasFailures());
 	}
 
@@ -467,14 +518,14 @@ class JMElasticsearchBulk {
 	 *            the index
 	 * @param type
 	 *            the type
-	 * @param filterBuilder
-	 *            the filter builder
+	 * @param filterQueryBuilder
+	 *            the filter query builder
 	 */
 	public void deleteBulkDocsAsync(String index, String type,
-			FilterBuilder filterBuilder) {
+			QueryBuilder filterQueryBuilder) {
 		excuteBulkRequestAsync(buildDeleteBulkRequestBuilder(
 				buildExtractDeleteRequestBuilderList(index, type,
-						filterBuilder)));
+						filterQueryBuilder)));
 	}
 
 	/**
@@ -484,13 +535,13 @@ class JMElasticsearchBulk {
 	 *            the index list
 	 * @param typeList
 	 *            the type list
-	 * @param filterBuilder
-	 *            the filter builder
+	 * @param filterQueryBuilder
+	 *            the filter query builder
 	 */
 	public void deleteBulkDocsAsync(List<String> indexList,
-			List<String> typeList, FilterBuilder filterBuilder) {
+			List<String> typeList, QueryBuilder filterQueryBuilder) {
 		indexList.forEach(index -> typeList.forEach(
-				type -> deleteBulkDocsAsync(index, type, filterBuilder)));
+				type -> deleteBulkDocsAsync(index, type, filterQueryBuilder)));
 	}
 
 	/**
@@ -500,17 +551,18 @@ class JMElasticsearchBulk {
 	 *            the index
 	 * @param type
 	 *            the type
-	 * @param filterBuilder
-	 *            the filter builder
+	 * @param filterQueryBuilder
+	 *            the filter query builder
 	 * @param bulkResponseActionListener
 	 *            the bulk response action listener
 	 */
 	public void deleteBulkDocsAsync(String index, String type,
-			FilterBuilder filterBuilder,
+			QueryBuilder filterQueryBuilder,
 			ActionListener<BulkResponse> bulkResponseActionListener) {
-		excuteBulkRequestAsync(buildDeleteBulkRequestBuilder(
-				buildExtractDeleteRequestBuilderList(index, type,
-						filterBuilder)),
+		excuteBulkRequestAsync(
+				buildDeleteBulkRequestBuilder(
+						buildExtractDeleteRequestBuilderList(index, type,
+								filterQueryBuilder)),
 				bulkResponseActionListener);
 	}
 
@@ -521,17 +573,17 @@ class JMElasticsearchBulk {
 	 *            the index list
 	 * @param typeList
 	 *            the type list
-	 * @param filterBuilder
-	 *            the filter builder
+	 * @param filterQueryBuilder
+	 *            the filter query builder
 	 * @param bulkResponseActionListener
 	 *            the bulk response action listener
 	 */
 	public void deleteBulkDocsAsync(List<String> indexList,
-			List<String> typeList, FilterBuilder filterBuilder,
+			List<String> typeList, QueryBuilder filterQueryBuilder,
 			ActionListener<BulkResponse> bulkResponseActionListener) {
 		indexList.forEach(
 				index -> typeList.forEach(type -> deleteBulkDocsAsync(index,
-						type, filterBuilder, bulkResponseActionListener)));
+						type, filterQueryBuilder, bulkResponseActionListener)));
 	}
 
 	private List<DeleteRequestBuilder>
@@ -541,9 +593,9 @@ class JMElasticsearchBulk {
 	}
 
 	private List<DeleteRequestBuilder> buildExtractDeleteRequestBuilderList(
-			String index, String type, FilterBuilder filterBuilder) {
+			String index, String type, QueryBuilder filterQueryBuilder) {
 		return buildDeleteRequestBuilderList(index, type,
-				jmESClient.extractIdList(index, type, filterBuilder));
+				jmESClient.extractIdList(index, type, filterQueryBuilder));
 	}
 
 	private List<DeleteRequestBuilder> buildDeleteRequestBuilderList(

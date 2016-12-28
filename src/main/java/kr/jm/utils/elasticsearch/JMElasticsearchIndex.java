@@ -2,6 +2,7 @@ package kr.jm.utils.elasticsearch;
 
 import java.util.Map;
 
+import org.elasticsearch.action.ListenableActionFuture;
 import org.elasticsearch.action.index.IndexRequestBuilder;
 import org.elasticsearch.action.index.IndexResponse;
 import org.elasticsearch.client.Client;
@@ -36,22 +37,32 @@ public class JMElasticsearchIndex {
 	}
 
 	/**
-	 * Send data.
+	 * Index query async.
 	 *
-	 * @param jsonSource
-	 *            the json source
-	 * @param index
-	 *            the index
-	 * @param type
-	 *            the type
-	 * @param id
-	 *            the id
-	 * @return the index response
+	 * @param indexRequestBuilder
+	 *            the index request builder
+	 * @return the listenable action future
 	 */
-	public IndexResponse sendData(String jsonSource, String index, String type,
+	public ListenableActionFuture<IndexResponse>
+			indexQueryAsync(IndexRequestBuilder indexRequestBuilder) {
+		return JMElastricsearchUtil.logExcuteAndReturnAsync("indexQueryAsync",
+				indexRequestBuilder, indexRequestBuilder.execute());
+	}
+
+	private IndexRequestBuilder buildIndexRequest(String jsonSource,
+			String index, String type, String id) {
+		return getPrepareIndex(index, type, id).setSource(jsonSource);
+	}
+
+	private IndexRequestBuilder buildIndexRequest(Map<String, Object> source,
+			String index, String type, String id) {
+		return getPrepareIndex(index, type, id).setSource(source);
+	}
+
+	private IndexRequestBuilder getPrepareIndex(String index, String type,
 			String id) {
-		return indexQuery(
-				jmESClient.prepareIndex(index, type, id).setSource(jsonSource));
+		return id == null ? jmESClient.prepareIndex(index, type)
+				: jmESClient.prepareIndex(index, type, id);
 	}
 
 	/**
@@ -69,25 +80,7 @@ public class JMElasticsearchIndex {
 	 */
 	public IndexResponse sendData(Map<String, Object> source, String index,
 			String type, String id) {
-		return indexQuery(
-				jmESClient.prepareIndex(index, type, id).setSource(source));
-	}
-
-	/**
-	 * Send data.
-	 *
-	 * @param jsonSource
-	 *            the json source
-	 * @param index
-	 *            the index
-	 * @param type
-	 *            the type
-	 * @return the string
-	 */
-	public String sendData(String jsonSource, String index, String type) {
-		return indexQuery(
-				jmESClient.prepareIndex(index, type).setSource(jsonSource))
-						.getId();
+		return indexQuery(buildIndexRequest(source, index, type, id));
 	}
 
 	/**
@@ -103,26 +96,40 @@ public class JMElasticsearchIndex {
 	 */
 	public String sendData(Map<String, Object> source, String index,
 			String type) {
-		return indexQuery(
-				jmESClient.prepareIndex(index, type).setSource(source)).getId();
+		return sendData(source, index, type, null).getId();
 	}
 
 	/**
-	 * Send data with object mapper.
+	 * Send data.
 	 *
-	 * @param sourceObject
-	 *            the source object
+	 * @param jsonSource
+	 *            the json source
+	 * @param index
+	 *            the index
+	 * @param type
+	 *            the type
+	 * @param id
+	 *            the id
+	 * @return the index response
+	 */
+	public IndexResponse sendData(String jsonSource, String index, String type,
+			String id) {
+		return indexQuery(buildIndexRequest(jsonSource, index, type, id));
+	}
+
+	/**
+	 * Send data.
+	 *
+	 * @param jsonSource
+	 *            the json source
 	 * @param index
 	 *            the index
 	 * @param type
 	 *            the type
 	 * @return the string
 	 */
-	public String sendDataWithObjectMapper(Object sourceObject, String index,
-			String type) {
-		return indexQuery(jmESClient.prepareIndex(index, type).setSource(
-				JMElastricsearchUtil.buildSourceByJsonMapper(sourceObject)))
-						.getId();
+	public String sendData(String jsonSource, String index, String type) {
+		return sendData(jsonSource, index, type, null).getId();
 	}
 
 	/**
@@ -140,8 +147,82 @@ public class JMElasticsearchIndex {
 	 */
 	public IndexResponse sendDataWithObjectMapper(Object sourceObject,
 			String index, String type, String id) {
-		return indexQuery(jmESClient.prepareIndex(index, type, id).setSource(
-				JMElastricsearchUtil.buildSourceByJsonMapper(sourceObject)));
+		return sendData(
+				JMElastricsearchUtil.buildSourceByJsonMapper(sourceObject),
+				index, type, id);
+	}
+
+	/**
+	 * Send data with object mapper.
+	 *
+	 * @param sourceObject
+	 *            the source object
+	 * @param index
+	 *            the index
+	 * @param type
+	 *            the type
+	 * @return the string
+	 */
+	public String sendDataWithObjectMapper(Object sourceObject, String index,
+			String type) {
+		return sendDataWithObjectMapper(sourceObject, index, type, null)
+				.getId();
+	}
+
+	/**
+	 * Send data async.
+	 *
+	 * @param source
+	 *            the source
+	 * @param index
+	 *            the index
+	 * @param type
+	 *            the type
+	 * @param id
+	 *            the id
+	 * @return the listenable action future
+	 */
+	public ListenableActionFuture<IndexResponse> sendDataAsync(
+			Map<String, Object> source, String index, String type, String id) {
+		return indexQueryAsync(buildIndexRequest(source, index, type, id));
+	}
+
+	/**
+	 * Send data async.
+	 *
+	 * @param jsonSource
+	 *            the json source
+	 * @param index
+	 *            the index
+	 * @param type
+	 *            the type
+	 * @param id
+	 *            the id
+	 * @return the listenable action future
+	 */
+	public ListenableActionFuture<IndexResponse> sendDataAsync(
+			String jsonSource, String index, String type, String id) {
+		return indexQueryAsync(buildIndexRequest(jsonSource, index, type, id));
+	}
+
+	/**
+	 * Send data async.
+	 *
+	 * @param sourceObject
+	 *            the source object
+	 * @param index
+	 *            the index
+	 * @param type
+	 *            the type
+	 * @param id
+	 *            the id
+	 * @return the listenable action future
+	 */
+	public ListenableActionFuture<IndexResponse> sendDataAsync(
+			Object sourceObject, String index, String type, String id) {
+		return indexQueryAsync(buildIndexRequest(
+				JMElastricsearchUtil.buildSourceByJsonMapper(sourceObject),
+				index, type, id));
 	}
 
 }
