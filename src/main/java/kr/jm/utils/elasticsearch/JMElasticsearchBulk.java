@@ -220,6 +220,11 @@ class JMElasticsearchBulk {
 				.collect(toList()));
 	}
 
+	public void sendWithBulkProcessor(Map<String, Object> source, String index,
+			String type) {
+		sendWithBulkProcessor(new IndexRequest(index, type).source(source));
+	}
+
 	/**
 	 * Send with bulk processor and object mapper.
 	 *
@@ -239,6 +244,12 @@ class JMElasticsearchBulk {
 				.collect(toList()));
 	}
 
+	public void sendWithBulkProcessorAndObjectMapper(Object object,
+			String index, String type) {
+		sendWithBulkProcessor(new IndexRequest(index, type)
+				.source(JMElastricsearchUtil.buildSourceByJsonMapper(object)));
+	}
+
 	/**
 	 * Send with bulk processor.
 	 *
@@ -246,10 +257,14 @@ class JMElasticsearchBulk {
 	 *            the index request list
 	 */
 	public void sendWithBulkProcessor(List<IndexRequest> indexRequestList) {
-		BulkProcessor bulkProcessor = Optional.ofNullable(this.bulkProcessor)
+		indexRequestList.forEach(this::sendWithBulkProcessor);
+	}
+
+	public void sendWithBulkProcessor(IndexRequest indexRequest) {
+		Optional.ofNullable(this.bulkProcessor)
 				.orElseGet(() -> setAndReturnBulkProcessor(BulkProcessor
-						.builder(jmESClient, bulkProcessorListener).build()));
-		indexRequestList.forEach(bulkProcessor::add);
+						.builder(jmESClient, bulkProcessorListener).build()))
+				.add(indexRequest);
 	}
 
 	/**

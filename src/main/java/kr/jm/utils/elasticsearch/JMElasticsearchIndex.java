@@ -187,6 +187,11 @@ public class JMElasticsearchIndex {
 		return indexQueryAsync(buildIndexRequest(source, index, type, id));
 	}
 
+	public ListenableActionFuture<IndexResponse> sendDataAsync(
+			Map<String, Object> source, String index, String type) {
+		return indexQueryAsync(buildIndexRequest(source, index, type, null));
+	}
+
 	/**
 	 * Send data async.
 	 *
@@ -203,6 +208,12 @@ public class JMElasticsearchIndex {
 	public ListenableActionFuture<IndexResponse> sendDataAsync(
 			String jsonSource, String index, String type, String id) {
 		return indexQueryAsync(buildIndexRequest(jsonSource, index, type, id));
+	}
+
+	public ListenableActionFuture<IndexResponse>
+			sendDataAsync(String jsonSource, String index, String type) {
+		return indexQueryAsync(
+				buildIndexRequest(jsonSource, index, type, null));
 	}
 
 	/**
@@ -223,6 +234,13 @@ public class JMElasticsearchIndex {
 		return indexQueryAsync(buildIndexRequest(
 				JMElastricsearchUtil.buildSourceByJsonMapper(sourceObject),
 				index, type, id));
+	}
+
+	public ListenableActionFuture<IndexResponse>
+			sendDataAsync(Object sourceObject, String index, String type) {
+		return indexQueryAsync(buildIndexRequest(
+				JMElastricsearchUtil.buildSourceByJsonMapper(sourceObject),
+				index, type, null));
 	}
 
 }
