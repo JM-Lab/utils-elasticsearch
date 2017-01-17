@@ -215,14 +215,20 @@ class JMElasticsearchBulk {
 	 */
 	public void sendWithBulkProcessor(List<Map<String, Object>> bulkSource,
 			String index, String type) {
-		sendWithBulkProcessor(bulkSource.stream()
-				.map(source -> new IndexRequest(index, type).source(source))
+		sendWithBulkProcessor(bulkSource.stream().map(
+				source -> buildIndexRequest(index, type, null).source(source))
 				.collect(toList()));
 	}
 
 	public void sendWithBulkProcessor(Map<String, Object> source, String index,
 			String type) {
-		sendWithBulkProcessor(new IndexRequest(index, type).source(source));
+		sendWithBulkProcessor(source, index, type, null);
+	}
+
+	public void sendWithBulkProcessor(Map<String, Object> source, String index,
+			String type, String id) {
+		sendWithBulkProcessor(
+				buildIndexRequest(index, type, id).source(source));
 	}
 
 	/**
@@ -238,15 +244,26 @@ class JMElasticsearchBulk {
 	public void sendWithBulkProcessorAndObjectMapper(List<Object> bulkObject,
 			String index, String type) {
 		sendWithBulkProcessor(bulkObject.stream()
-				.map(sourceObject -> new IndexRequest(index, type)
+				.map(sourceObject -> buildIndexRequest(index, type, null)
 						.source(JMElastricsearchUtil
 								.buildSourceByJsonMapper(sourceObject)))
 				.collect(toList()));
 	}
 
+	private IndexRequest buildIndexRequest(String index, String type,
+			String id) {
+		return id == null ? new IndexRequest(index, type)
+				: new IndexRequest(index, type, id);
+	}
+
 	public void sendWithBulkProcessorAndObjectMapper(Object object,
 			String index, String type) {
-		sendWithBulkProcessor(new IndexRequest(index, type)
+		sendWithBulkProcessorAndObjectMapper(object, index, type, null);
+	}
+
+	public void sendWithBulkProcessorAndObjectMapper(Object object,
+			String index, String type, String id) {
+		sendWithBulkProcessor(buildIndexRequest(index, type, id)
 				.source(JMElastricsearchUtil.buildSourceByJsonMapper(object)));
 	}
 
