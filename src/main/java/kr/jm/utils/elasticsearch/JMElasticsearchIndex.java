@@ -3,8 +3,11 @@ package kr.jm.utils.elasticsearch;
 import java.util.Map;
 
 import org.elasticsearch.action.ListenableActionFuture;
+import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.action.index.IndexRequestBuilder;
 import org.elasticsearch.action.index.IndexResponse;
+import org.elasticsearch.action.update.UpdateRequestBuilder;
+import org.elasticsearch.action.update.UpdateResponse;
 import org.elasticsearch.client.Client;
 
 /**
@@ -63,6 +66,67 @@ public class JMElasticsearchIndex {
 			String id) {
 		return id == null ? jmESClient.prepareIndex(index, type)
 				: jmESClient.prepareIndex(index, type, id);
+	}
+
+	private UpdateRequestBuilder buildPrepareUpsert(String index, String type,
+			String id, String jsonString) {
+		return jmESClient.prepareUpdate(index, type, id).setDoc(jsonString)
+				.setUpsert(
+						new IndexRequest(index, type, id).source(jsonString));
+	}
+
+	private UpdateRequestBuilder buildPrepareUpsert(String index, String type,
+			String id, Map<String, Object> source) {
+		return jmESClient.prepareUpdate(index, type, id).setDoc(source)
+				.setUpsert(new IndexRequest(index, type, id).source(source));
+	}
+
+	public UpdateResponse
+			upsertQuery(UpdateRequestBuilder updateRequestBuilder) {
+		return JMElastricsearchUtil.logExcuteAndReturn("upsertQuery",
+				updateRequestBuilder, updateRequestBuilder.execute());
+	}
+
+	public ListenableActionFuture<UpdateResponse>
+			upsertQueryAsync(UpdateRequestBuilder updateRequestBuilder) {
+		return JMElastricsearchUtil.logExcuteAndReturnAsync("upsertQueryAsync",
+				updateRequestBuilder, updateRequestBuilder.execute());
+	}
+
+	public UpdateResponse upsertData(Map<String, Object> source, String index,
+			String type, String id) {
+		return upsertQuery(buildPrepareUpsert(index, type, id, source));
+	}
+
+	public ListenableActionFuture<UpdateResponse> upsertDataAsync(
+			Map<String, Object> source, String index, String type, String id) {
+		return upsertQueryAsync(buildPrepareUpsert(index, type, id, source));
+	}
+
+	public UpdateResponse upsertData(String jsonSource, String index,
+			String type, String id) {
+		return upsertQuery(buildPrepareUpsert(index, type, id, jsonSource));
+	}
+
+	public ListenableActionFuture<UpdateResponse> upsertDataAsync(
+			String jsonSource, String index, String type, String id) {
+		return upsertQueryAsync(
+				buildPrepareUpsert(index, type, id, jsonSource));
+	}
+
+	public UpdateResponse upsertDataWithObjectMapper(Object sourceObject,
+			String index, String type, String id) {
+		return upsertData(
+				JMElastricsearchUtil.buildSourceByJsonMapper(sourceObject),
+				index, type, id);
+	}
+
+	public ListenableActionFuture<UpdateResponse>
+			upsertDataASyncWithObjectMapper(Object sourceObject, String index,
+					String type, String id) {
+		return upsertDataAsync(
+				JMElastricsearchUtil.buildSourceByJsonMapper(sourceObject),
+				index, type, id);
 	}
 
 	/**
@@ -229,15 +293,15 @@ public class JMElasticsearchIndex {
 	 *            the id
 	 * @return the listenable action future
 	 */
-	public ListenableActionFuture<IndexResponse> sendDataAsync(
+	public ListenableActionFuture<IndexResponse> sendDataAsyncWithObjectMapper(
 			Object sourceObject, String index, String type, String id) {
 		return indexQueryAsync(buildIndexRequest(
 				JMElastricsearchUtil.buildSourceByJsonMapper(sourceObject),
 				index, type, id));
 	}
 
-	public ListenableActionFuture<IndexResponse>
-			sendDataAsync(Object sourceObject, String index, String type) {
+	public ListenableActionFuture<IndexResponse> sendDataAsyncWithObjectMapper(
+			Object sourceObject, String index, String type) {
 		return indexQueryAsync(buildIndexRequest(
 				JMElastricsearchUtil.buildSourceByJsonMapper(sourceObject),
 				index, type, null));

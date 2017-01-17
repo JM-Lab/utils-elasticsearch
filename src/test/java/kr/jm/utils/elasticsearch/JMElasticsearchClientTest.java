@@ -18,6 +18,7 @@ import org.elasticsearch.common.collect.ImmutableOpenMap;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.SearchHit;
+import org.elasticsearch.search.SearchHits;
 import org.elasticsearch.search.aggregations.AbstractAggregationBuilder;
 import org.elasticsearch.search.aggregations.AggregationBuilder;
 import org.elasticsearch.search.aggregations.AggregationBuilders;
@@ -575,6 +576,56 @@ public class JMElasticsearchClientTest {
 		assertFalse(searchResponse1.toString().contains(test500));
 		assertEquals(0, searchResponse1.getHits().hits().length);
 
+	}
+
+	@Test
+	public final void testUpsertQuery() {
+		String index = "test-2015.05.12";
+		String type = "test-responsetime";
+		String test30 = "test_30";
+		String test400 = "test_400";
+
+		Map<String, Object> sourceObject = new HashMap<>();
+		String timestamp = "@timestamp";
+		sourceObject.put(timestamp, "2015-05-12T00:59:00Z");
+		sourceObject.put(test30, 30);
+		sourceObject.put(test400, 400);
+
+		if (!jmElasticsearchClient.isExists(index))
+			assertTrue(jmElasticsearchClient.create(index));
+		jmElasticsearchClient.sendData(sourceObject, index, type, "1");
+		// 인덱싱할 시간 필요
+		JMThread.sleep(1000);
+		SearchResponse searchResponse =
+				jmElasticsearchClient.searchAll(index, type);
+		System.out.println(searchResponse);
+		SearchHits hits = searchResponse.getHits();
+		SearchHit searchHit = hits.getAt(0);
+		System.out.println(searchHit.getVersion());
+		sourceObject = new HashMap<>();
+		sourceObject.put(test400, 500);
+		// 기존것에 다시 보내면 기존데이터를 새로운 것으로 변경 함
+		jmElasticsearchClient.sendData(sourceObject, index, type, "1");
+		JMThread.sleep(1000);
+		searchResponse = jmElasticsearchClient.searchAll(index, type);
+		System.out.println(searchResponse);
+		hits = searchResponse.getHits();
+		searchHit = hits.getAt(0);
+		System.out.println(searchHit.getVersion());
+		assertEquals(500, searchHit.getSource().get(test400));
+		sourceObject = new HashMap<>();
+		sourceObject.put("new", "newData");
+		// upsertData 를 하면 기존 데이터를 그대로 둔 상태에서 새로 추가된 것만 넣거나 함
+		jmElasticsearchClient.upsertData(sourceObject, index, type, "1");
+		JMThread.sleep(1000);
+		searchResponse = jmElasticsearchClient.searchAll(index, type);
+		System.out.println(searchResponse);
+		hits = searchResponse.getHits();
+		searchHit = hits.getAt(0);
+		// 버전 변경이 안됨 항상 -1
+		System.out.println(searchHit.getVersion());
+		assertEquals(500, searchHit.getSource().get(test400));
+		assertEquals("newData", searchHit.getSource().get("new"));
 	}
 
 }
