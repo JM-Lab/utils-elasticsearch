@@ -4,7 +4,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.github.jm-lab</groupId>
 	<artifactId>jmlab-utils-elasticsearch</artifactId>
-	<version>0.5.1-SNAPSHOT</version>
+	<version>0.5.1</version>
 	<packaging>jar</packaging>
 	<name>JMLab-Utils-Elasticsearch</name>
 	<description>JMLab Utility Libraries For Elasticsearch Client</description>
@@ -134,7 +134,7 @@
 		<dependency>
 			<groupId>kr.jmlab</groupId>
 			<artifactId>jmlab-utils-java8</artifactId>
-			<version>0.1.85-SNAPSHOT</version>
+			<version>0.1.85</version>
 		</dependency>
 		<dependency>
 			<groupId>org.slf4j</groupId>
