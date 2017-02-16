@@ -775,14 +775,14 @@ public class JMElasticsearchSearchAndCount {
 		return searchQuery(getSearchRequestBuilderWithCount(
 				getSearchRequestBuilderWithMatchAll(false, indices, types,
 						fields, filterQueryBuilder, aggregationBuilders),
-				indices, types));
+				filterQueryBuilder, indices, types));
 	}
 
 	private SearchRequestBuilder getSearchRequestBuilderWithCount(
-			SearchRequestBuilder searchRequestBuilder, String[] indices,
-			String[] types) {
-		return searchRequestBuilder
-				.setSize(Long.valueOf(count(indices, types)).intValue());
+			SearchRequestBuilder searchRequestBuilder,
+			QueryBuilder filterQueryBuilder, String[] indices, String[] types) {
+		return searchRequestBuilder.setSize(Long
+				.valueOf(count(indices, types, filterQueryBuilder)).intValue());
 	}
 
 	/**
@@ -1020,7 +1020,7 @@ public class JMElasticsearchSearchAndCount {
 	 * @return the long
 	 */
 	public long count(String... indices) {
-		return countQuery(getSearchRequestBuilderWithMatchAll(false, indices));
+		return count(indices, null);
 	}
 
 	/**
@@ -1033,8 +1033,13 @@ public class JMElasticsearchSearchAndCount {
 	 * @return the long
 	 */
 	public long count(String[] indices, String[] types) {
-		return countQuery(
-				getSearchRequestBuilderWithMatchAll(false, indices, types));
+		return count(indices, types, null);
+	}
+
+	public long count(String[] indices, String[] types,
+			QueryBuilder filterQueryBuilder) {
+		return countQuery(getSearchRequestBuilderWithMatchAll(false, indices,
+				types, null, filterQueryBuilder));
 	}
 
 }
