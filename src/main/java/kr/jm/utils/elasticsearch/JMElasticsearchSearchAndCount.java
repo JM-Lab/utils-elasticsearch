@@ -1,9 +1,8 @@
 package kr.jm.utils.elasticsearch;
 
-import static kr.jm.utils.helper.JMOptional.ifNotNull;
-
-import java.util.Arrays;
-
+import kr.jm.utils.datastructure.JMArrays;
+import lombok.Getter;
+import lombok.Setter;
 import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.action.search.SearchType;
@@ -12,9 +11,9 @@ import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.aggregations.AggregationBuilder;
 
-import kr.jm.utils.datastructure.JMArrays;
-import lombok.Getter;
-import lombok.Setter;
+import java.util.Arrays;
+
+import static kr.jm.utils.helper.JMOptional.ifNotNull;
 
 /**
  * The Class JMElasticsearchSearchAndCount.
@@ -65,7 +64,6 @@ public class JMElasticsearchSearchAndCount {
 				esClient.prepareSearch(indices)
 						.setSearchType(SearchType.DFS_QUERY_THEN_FETCH)
 						.setSize(defaultHitsCount).setExplain(isSetExplain);
-		ifNotNull(types, searchRequestBuilder::setTypes);
 		ifNotNull(types, searchRequestBuilder::setTypes);
 		ifNotNull(fields, searchRequestBuilder::storedFields);
 		ifNotNull(queryBuilder, searchRequestBuilder::setQuery);

@@ -22,43 +22,43 @@ import kr.jm.utils.exception.JMExceptionManager;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * The Class JMEmbededElastricsearch.
+ * The Class JMEmbeddedElastricsearch.
  */
 @Slf4j
-public class JMEmbededElastricsearch extends Node {
+public class JMEmbeddedElastricsearch extends Node {
 	private static final Collection<Class<? extends Plugin>> PRE_INSTALLED_PLUGINS =
 			Collections.unmodifiableList(
 					Arrays.asList(Netty4Plugin.class, ReindexPlugin.class,
 							PercolatorPlugin.class, MustachePlugin.class));
 
 	/**
-	 * Instantiates a new JM embeded elastricsearch.
+	 * Instantiates a new JM embedded elastricsearch.
 	 */
-	public JMEmbededElastricsearch() {
+	public JMEmbeddedElastricsearch() {
 		this(OS.getHostname(), "localhost");
 	}
 
 	/**
-	 * Instantiates a new JM embeded elastricsearch.
+	 * Instantiates a new JM embedded elastricsearch.
 	 *
 	 * @param settings
 	 *            the settings
 	 */
-	public JMEmbededElastricsearch(Settings settings) {
+	public JMEmbeddedElastricsearch(Settings settings) {
 		super(InternalSettingsPreparer.prepareEnvironment(settings, null),
 				PRE_INSTALLED_PLUGINS);
 	}
 
 	/**
-	 * Instantiates a new JM embeded elastricsearch.
+	 * Instantiates a new JM embedded elastricsearch.
 	 *
 	 * @param nodeName
 	 *            the node name
 	 * @param networkHost
 	 *            the network host
 	 */
-	public JMEmbededElastricsearch(String nodeName, String networkHost) {
-		this(getNodeConfig("JMEmbededElastricsearch", nodeName, networkHost,
+	public JMEmbeddedElastricsearch(String nodeName, String networkHost) {
+		this(getNodeConfig("JMEmbeddedElastricsearch", nodeName, networkHost,
 				OS.getUserWorkingDir(), true).build());
 
 	}

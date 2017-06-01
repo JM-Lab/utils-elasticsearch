@@ -39,7 +39,7 @@ public class JMElasticsearchClientTest {
 		System.setProperty("org.slf4j.simpleLogger.defaultLogLevel", "DEBUG");
 	}
 
-	private JMEmbededElastricsearch jmEmbededElasticsearch;
+	private JMEmbeddedElastricsearch jmEmbeddedElasticsearch;
 
 	private JMElasticsearchClient jmElasticsearchClient;
 
@@ -51,13 +51,13 @@ public class JMElasticsearchClientTest {
 	 */
 	@Before
 	public void setUp() throws Exception {
-		// Embeded Elasticsearch Node Start
-		this.jmEmbededElasticsearch = new JMEmbededElastricsearch();
-		this.jmEmbededElasticsearch.start();
+		// Embedded Elasticsearch Node Start
+		this.jmEmbeddedElasticsearch = new JMEmbeddedElastricsearch();
+		this.jmEmbeddedElasticsearch.start();
 
 		// JMElasticsearchClient Init
 		this.jmElasticsearchClient = new JMElasticsearchClient(
-				this.jmEmbededElasticsearch.getTransportIpPortPair());
+				this.jmEmbeddedElasticsearch.getTransportIpPortPair());
 
 		// Bulk Processor Setting
 		int bulkActions = 3;
@@ -81,7 +81,7 @@ public class JMElasticsearchClientTest {
 		while (jmElasticsearchClient.getAllIndices().size() > 0)
 			JMThread.sleep(1000);
 		jmElasticsearchClient.close();
-		jmEmbededElasticsearch.close();
+		jmEmbeddedElasticsearch.close();
 	}
 
 	/**
