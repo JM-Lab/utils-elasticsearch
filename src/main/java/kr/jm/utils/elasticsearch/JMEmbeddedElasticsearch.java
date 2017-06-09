@@ -1,9 +1,8 @@
 package kr.jm.utils.elasticsearch;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-
+import kr.jm.utils.enums.OS;
+import kr.jm.utils.exception.JMExceptionManager;
+import lombok.extern.slf4j.Slf4j;
 import org.elasticsearch.action.admin.cluster.node.info.NodeInfo;
 import org.elasticsearch.client.ClusterAdminClient;
 import org.elasticsearch.common.settings.Settings;
@@ -17,48 +16,48 @@ import org.elasticsearch.plugins.Plugin;
 import org.elasticsearch.script.mustache.MustachePlugin;
 import org.elasticsearch.transport.Netty4Plugin;
 
-import kr.jm.utils.enums.OS;
-import kr.jm.utils.exception.JMExceptionManager;
-import lombok.extern.slf4j.Slf4j;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
 
 /**
- * The Class JMEmbeddedElastricsearch.
+ * The Class JMEmbeddedElasticsearch.
  */
 @Slf4j
-public class JMEmbeddedElastricsearch extends Node {
+public class JMEmbeddedElasticsearch extends Node {
 	private static final Collection<Class<? extends Plugin>> PRE_INSTALLED_PLUGINS =
 			Collections.unmodifiableList(
 					Arrays.asList(Netty4Plugin.class, ReindexPlugin.class,
 							PercolatorPlugin.class, MustachePlugin.class));
 
 	/**
-	 * Instantiates a new JM embedded elastricsearch.
+	 * Instantiates a new JM embedded elasticsearch.
 	 */
-	public JMEmbeddedElastricsearch() {
+	public JMEmbeddedElasticsearch() {
 		this(OS.getHostname(), "localhost");
 	}
 
 	/**
-	 * Instantiates a new JM embedded elastricsearch.
+	 * Instantiates a new JM embedded elasticsearch.
 	 *
 	 * @param settings
 	 *            the settings
 	 */
-	public JMEmbeddedElastricsearch(Settings settings) {
+	public JMEmbeddedElasticsearch(Settings settings) {
 		super(InternalSettingsPreparer.prepareEnvironment(settings, null),
 				PRE_INSTALLED_PLUGINS);
 	}
 
 	/**
-	 * Instantiates a new JM embedded elastricsearch.
+	 * Instantiates a new JM embedded elasticsearch.
 	 *
 	 * @param nodeName
 	 *            the node name
 	 * @param networkHost
 	 *            the network host
 	 */
-	public JMEmbeddedElastricsearch(String nodeName, String networkHost) {
-		this(getNodeConfig("JMEmbeddedElastricsearch", nodeName, networkHost,
+	public JMEmbeddedElasticsearch(String nodeName, String networkHost) {
+		this(getNodeConfig("JMEmbeddedElasticsearch", nodeName, networkHost,
 				OS.getUserWorkingDir(), true).build());
 
 	}

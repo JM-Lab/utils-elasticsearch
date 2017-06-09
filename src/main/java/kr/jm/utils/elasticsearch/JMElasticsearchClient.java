@@ -82,10 +82,10 @@ public class JMElasticsearchClient extends PreBuiltTransportClient {
         super(settings);
         try {
             for (String ipPort : elasticsearchConnect.split(",")) {
-                String[] seperatedIpPort = ipPort.split(":");
+                String[] separatedIpPort = ipPort.split(":");
                 addTransportAddress(new InetSocketTransportAddress(
-                        InetAddress.getByName(seperatedIpPort[0]),
-                        Integer.parseInt(seperatedIpPort[1])));
+                        InetAddress.getByName(separatedIpPort[0]),
+                        Integer.parseInt(separatedIpPort[1])));
             }
         } catch (Exception e) {
             JMExceptionManager.handleExceptionAndThrowRuntimeEx(log, e,
@@ -173,8 +173,8 @@ public class JMElasticsearchClient extends PreBuiltTransportClient {
     public boolean isExists(String index) {
         IndicesExistsRequestBuilder indicesExistsRequestBuilder =
                 admin().indices().prepareExists(index);
-        return JMElastricsearchUtil
-                .logExcuteAndReturn("isExists", indicesExistsRequestBuilder,
+        return JMElasticsearchUtil
+                .logExecuteAndReturn("isExists", indicesExistsRequestBuilder,
                         indicesExistsRequestBuilder.execute())
                 .isExists();
     }
@@ -188,7 +188,7 @@ public class JMElasticsearchClient extends PreBuiltTransportClient {
     public boolean create(String index) {
         CreateIndexRequestBuilder createIndexRequestBuilder =
                 admin().indices().prepareCreate(index);
-        return JMElastricsearchUtil.logExcuteAndReturn("create",
+        return JMElasticsearchUtil.logExecuteAndReturn("create",
                 createIndexRequestBuilder, createIndexRequestBuilder.execute())
                 .isAcknowledged();
     }
@@ -239,7 +239,7 @@ public class JMElasticsearchClient extends PreBuiltTransportClient {
     getMappingsResponse(String... indices) {
         GetMappingsRequestBuilder getMappingsRequestBuilder =
                 admin().indices().prepareGetMappings(indices);
-        return JMElastricsearchUtil.logExcuteAndReturn("getMappingsResponse",
+        return JMElasticsearchUtil.logExecuteAndReturn("getMappingsResponse",
                 getMappingsRequestBuilder, getMappingsRequestBuilder.execute
                         ()).getMappings();
     }
@@ -252,7 +252,7 @@ public class JMElasticsearchClient extends PreBuiltTransportClient {
     public Map<String, IndexStats> getAllIndicesStats() {
         IndicesStatsRequestBuilder indicesStatsRequestBuilder =
                 admin().indices().prepareStats().all();
-        return JMElastricsearchUtil.logExcuteAndReturn("getAllIndicesStats",
+        return JMElasticsearchUtil.logExecuteAndReturn("getAllIndicesStats",
                 indicesStatsRequestBuilder,
                 indicesStatsRequestBuilder.execute()).getIndices();
     }
@@ -285,7 +285,7 @@ public class JMElasticsearchClient extends PreBuiltTransportClient {
      * @return the query
      */
     public GetResponse getQuery(GetRequestBuilder getRequestBuilder) {
-        return JMElastricsearchUtil.logExcuteAndReturn("getQuery",
+        return JMElasticsearchUtil.logExecuteAndReturn("getQuery",
                 getRequestBuilder, getRequestBuilder.execute());
     }
 
@@ -297,7 +297,7 @@ public class JMElasticsearchClient extends PreBuiltTransportClient {
      */
     public UpdateResponse
     updateQuery(UpdateRequestBuilder updateRequestBuilder) {
-        return JMElastricsearchUtil.logExcuteAndReturn("updateQuery",
+        return JMElasticsearchUtil.logExecuteAndReturn("updateQuery",
                 updateRequestBuilder, updateRequestBuilder.execute());
     }
 

@@ -1,16 +1,8 @@
 package kr.jm.utils.elasticsearch;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
+import kr.jm.utils.datastructure.JMCollections;
+import kr.jm.utils.helper.JMOptional;
+import kr.jm.utils.helper.JMThread;
 import org.elasticsearch.action.bulk.BulkResponse;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.cluster.metadata.MappingMetaData;
@@ -26,9 +18,9 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import kr.jm.utils.datastructure.JMCollections;
-import kr.jm.utils.helper.JMOptional;
-import kr.jm.utils.helper.JMThread;
+import java.util.*;
+
+import static org.junit.Assert.*;
 
 /**
  * The Class JMElasticsearchClientTest.
@@ -39,7 +31,7 @@ public class JMElasticsearchClientTest {
 		System.setProperty("org.slf4j.simpleLogger.defaultLogLevel", "DEBUG");
 	}
 
-	private JMEmbeddedElastricsearch jmEmbeddedElasticsearch;
+	private JMEmbeddedElasticsearch jmEmbeddedElasticsearch;
 
 	private JMElasticsearchClient jmElasticsearchClient;
 
@@ -52,7 +44,7 @@ public class JMElasticsearchClientTest {
 	@Before
 	public void setUp() throws Exception {
 		// Embedded Elasticsearch Node Start
-		this.jmEmbeddedElasticsearch = new JMEmbeddedElastricsearch();
+		this.jmEmbeddedElasticsearch = new JMEmbeddedElasticsearch();
 		this.jmEmbeddedElasticsearch.start();
 
 		// JMElasticsearchClient Init

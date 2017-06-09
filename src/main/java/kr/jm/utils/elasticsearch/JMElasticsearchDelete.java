@@ -16,8 +16,7 @@ public class JMElasticsearchDelete {
 	/**
 	 * Instantiates a new JM elasticsearch delete.
 	 *
-	 * @param elasticsearchClient
-	 *            the elasticsearch client
+	 * @param elasticsearchClient the elasticsearch client
 	 */
 	public JMElasticsearchDelete(Client elasticsearchClient) {
 		this.esClient = elasticsearchClient;
@@ -26,39 +25,34 @@ public class JMElasticsearchDelete {
 	/**
 	 * Delete query.
 	 *
-	 * @param deleteRequestBuilder
-	 *            the delete request builder
+	 * @param deleteRequestBuilder the delete request builder
 	 * @return the delete response
 	 */
 	public DeleteResponse
-			deleteQuery(DeleteRequestBuilder deleteRequestBuilder) {
-		return JMElastricsearchUtil.logExcuteAndReturn("deleteQuery",
+	deleteQuery(DeleteRequestBuilder deleteRequestBuilder) {
+		return JMElasticsearchUtil.logExecuteAndReturn("deleteQuery",
 				deleteRequestBuilder, deleteRequestBuilder.execute());
 	}
 
 	/**
 	 * Delete indices.
 	 *
-	 * @param indices
-	 *            the indices
+	 * @param indices the indices
 	 * @return the delete index response
 	 */
 	public DeleteIndexResponse deleteIndices(String... indices) {
 		DeleteIndexRequestBuilder requestBuilder =
 				esClient.admin().indices().prepareDelete(indices);
-		return JMElastricsearchUtil.logExcuteAndReturn("deleteIndices",
+		return JMElasticsearchUtil.logExecuteAndReturn("deleteIndices",
 				requestBuilder, requestBuilder.execute());
 	}
 
 	/**
 	 * Delete doc.
 	 *
-	 * @param index
-	 *            the index
-	 * @param type
-	 *            the type
-	 * @param id
-	 *            the id
+	 * @param index the index
+	 * @param type  the type
+	 * @param id    the id
 	 * @return the delete response
 	 */
 	public DeleteResponse deleteDoc(String index, String type, String id) {
