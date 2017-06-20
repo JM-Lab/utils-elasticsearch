@@ -212,7 +212,7 @@ public class JMElasticsearchClient extends PreBuiltTransportClient {
      * @return the all id list
      */
     public List<String> getAllIdList(String index, String type) {
-        return extractIdList(searchAllWithField(index, type, "_id"));
+        return extractIdList(searchAll(index, type));
     }
 
     /**
