@@ -2,7 +2,7 @@ JMLab Utility Libraries For Elasticsearch 5
 ===========================================
 
 ## Useful Functions :
-* **Embedded Elasticsearch Node - JMEmbeddedElastricsearch**
+* **Embedded Elasticsearch Node - JMEmbeddedElasticsearch**
 * **Elasticsearch Client (Transport) - JMElasticsearchClient**
 * ***SearchQuery***
 * ***SearchQueryBuilder***

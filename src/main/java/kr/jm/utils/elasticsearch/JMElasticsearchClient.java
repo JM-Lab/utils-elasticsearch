@@ -75,34 +75,6 @@ public class JMElasticsearchClient extends PreBuiltTransportClient {
      * Instantiates a new JM elasticsearch client.
      *
      * @param elasticsearchConnect the elasticsearch connect
-     * @param settings             the settings
-     */
-    public JMElasticsearchClient(String elasticsearchConnect,
-            Settings settings) {
-        super(settings);
-        try {
-            for (String ipPort : elasticsearchConnect.split(",")) {
-                String[] separatedIpPort = ipPort.split(":");
-                addTransportAddress(new InetSocketTransportAddress(
-                        InetAddress.getByName(separatedIpPort[0]),
-                        Integer.parseInt(separatedIpPort[1])));
-            }
-        } catch (Exception e) {
-            JMExceptionManager.handleExceptionAndThrowRuntimeEx(log, e,
-                    "JMElasticsearchClient", elasticsearchConnect, settings);
-        }
-        JMLog.info(log, "initElasticsearchClient", elasticsearchConnect,
-                settings);
-        this.jmESBulk = new JMElasticsearchBulk(this);
-        this.jmESIndex = new JMElasticsearchIndex(this);
-        this.jmESSearchAndCount = new JMElasticsearchSearchAndCount(this);
-        this.jmESDelete = new JMElasticsearchDelete(this);
-    }
-
-    /**
-     * Instantiates a new JM elasticsearch client.
-     *
-     * @param elasticsearchConnect the elasticsearch connect
      * @param nodeName             the node name
      * @param clientTransportSniff the client transport sniff
      * @param ignoreClusterName    the ignore cluster name
@@ -133,6 +105,35 @@ public class JMElasticsearchClient extends PreBuiltTransportClient {
      */
     public JMElasticsearchClient(String elasticsearchConnect, String nodeName) {
         this(elasticsearchConnect, nodeName, true);
+    }
+
+    /**
+     * Instantiates a new JM elasticsearch client.
+     *
+     * @param elasticsearchConnect the elasticsearch connect
+     * @param settings             the settings
+     */
+    public JMElasticsearchClient(String elasticsearchConnect,
+            Settings settings) {
+        super(settings);
+        this.settings = settings;
+        try {
+            for (String ipPort : elasticsearchConnect.split(",")) {
+                String[] separatedIpPort = ipPort.split(":");
+                addTransportAddress(new InetSocketTransportAddress(
+                        InetAddress.getByName(separatedIpPort[0]),
+                        Integer.parseInt(separatedIpPort[1])));
+            }
+        } catch (Exception e) {
+            JMExceptionManager.handleExceptionAndThrowRuntimeEx(log, e,
+                    "JMElasticsearchClient", elasticsearchConnect, settings);
+        }
+        JMLog.info(log, "initElasticsearchClient", elasticsearchConnect,
+                settings);
+        this.jmESBulk = new JMElasticsearchBulk(this);
+        this.jmESIndex = new JMElasticsearchIndex(this);
+        this.jmESSearchAndCount = new JMElasticsearchSearchAndCount(this);
+        this.jmESDelete = new JMElasticsearchDelete(this);
     }
 
     /**
@@ -174,7 +175,8 @@ public class JMElasticsearchClient extends PreBuiltTransportClient {
         IndicesExistsRequestBuilder indicesExistsRequestBuilder =
                 admin().indices().prepareExists(index);
         return JMElasticsearchUtil
-                .logExecuteAndReturn("isExists", indicesExistsRequestBuilder,
+                .logRequestQueryAndReturn("isExists",
+                        indicesExistsRequestBuilder,
                         indicesExistsRequestBuilder.execute())
                 .isExists();
     }
@@ -188,7 +190,7 @@ public class JMElasticsearchClient extends PreBuiltTransportClient {
     public boolean create(String index) {
         CreateIndexRequestBuilder createIndexRequestBuilder =
                 admin().indices().prepareCreate(index);
-        return JMElasticsearchUtil.logExecuteAndReturn("create",
+        return JMElasticsearchUtil.logRequestQueryAndReturn("create",
                 createIndexRequestBuilder, createIndexRequestBuilder.execute())
                 .isAcknowledged();
     }
@@ -239,7 +241,8 @@ public class JMElasticsearchClient extends PreBuiltTransportClient {
     getMappingsResponse(String... indices) {
         GetMappingsRequestBuilder getMappingsRequestBuilder =
                 admin().indices().prepareGetMappings(indices);
-        return JMElasticsearchUtil.logExecuteAndReturn("getMappingsResponse",
+        return JMElasticsearchUtil
+                .logRequestQueryAndReturn("getMappingsResponse",
                 getMappingsRequestBuilder, getMappingsRequestBuilder.execute
                         ()).getMappings();
     }
@@ -252,7 +255,8 @@ public class JMElasticsearchClient extends PreBuiltTransportClient {
     public Map<String, IndexStats> getAllIndicesStats() {
         IndicesStatsRequestBuilder indicesStatsRequestBuilder =
                 admin().indices().prepareStats().all();
-        return JMElasticsearchUtil.logExecuteAndReturn("getAllIndicesStats",
+        return JMElasticsearchUtil
+                .logRequestQueryAndReturn("getAllIndicesStats",
                 indicesStatsRequestBuilder,
                 indicesStatsRequestBuilder.execute()).getIndices();
     }
@@ -285,7 +289,7 @@ public class JMElasticsearchClient extends PreBuiltTransportClient {
      * @return the query
      */
     public GetResponse getQuery(GetRequestBuilder getRequestBuilder) {
-        return JMElasticsearchUtil.logExecuteAndReturn("getQuery",
+        return JMElasticsearchUtil.logRequestQueryAndReturn("getQuery",
                 getRequestBuilder, getRequestBuilder.execute());
     }
 
@@ -297,7 +301,7 @@ public class JMElasticsearchClient extends PreBuiltTransportClient {
      */
     public UpdateResponse
     updateQuery(UpdateRequestBuilder updateRequestBuilder) {
-        return JMElasticsearchUtil.logExecuteAndReturn("updateQuery",
+        return JMElasticsearchUtil.logRequestQueryAndReturn("updateQuery",
                 updateRequestBuilder, updateRequestBuilder.execute());
     }
 

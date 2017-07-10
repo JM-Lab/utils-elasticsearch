@@ -15,9 +15,10 @@ import org.elasticsearch.search.aggregations.AggregationBuilder;
 import java.util.function.Consumer;
 
 import static java.util.Arrays.stream;
-import static kr.jm.utils.elasticsearch.JMElasticsearchUtil.logExecuteAndReturn;
+import static kr.jm.utils.elasticsearch.JMElasticsearchUtil.logRequestQueryAndReturn;
 import static kr.jm.utils.helper.JMOptional.ifNotNull;
 import static kr.jm.utils.helper.JMPredicate.getIsNotNull;
+import static org.elasticsearch.common.unit.TimeValue.timeValueMillis;
 
 /**
  * The Class JMElasticsearchSearchAndCount.
@@ -25,9 +26,10 @@ import static kr.jm.utils.helper.JMPredicate.getIsNotNull;
 public class JMElasticsearchSearchAndCount {
 
     private static final int DefaultHitsCount = 10;
-
+    @Getter
+    @Setter
+    private static long timeoutMillis = 5000;
     private Client esClient;
-
     @Getter
     @Setter
     private int defaultHitsCount;
@@ -643,8 +645,19 @@ public class JMElasticsearchSearchAndCount {
      */
     public SearchResponse
     searchQuery(SearchRequestBuilder searchRequestBuilder) {
-        return logExecuteAndReturn("searchQuery",
-                searchRequestBuilder, searchRequestBuilder.execute());
+        return searchQuery(searchRequestBuilder, this.timeoutMillis);
+    }
+
+    private SearchResponse searchQuery(String method,
+            SearchRequestBuilder searchRequestBuilder, long timeoutMillis) {
+        searchRequestBuilder.setTimeout(timeValueMillis(timeoutMillis));
+        return logRequestQueryAndReturn(method, searchRequestBuilder,
+                searchRequestBuilder.execute(), timeoutMillis);
+    }
+
+    public SearchResponse searchQuery(SearchRequestBuilder searchRequestBuilder,
+            long timeoutMillis) {
+        return searchQuery("searchQuery", searchRequestBuilder, timeoutMillis);
     }
 
     /**
@@ -654,10 +667,14 @@ public class JMElasticsearchSearchAndCount {
      * @return the long
      */
     public long countQuery(SearchRequestBuilder countRequestBuilder) {
+        return countQuery(countRequestBuilder, this.timeoutMillis);
+    }
+
+    public long countQuery(SearchRequestBuilder countRequestBuilder,
+            long timeoutMillis) {
         countRequestBuilder.setSize(0);
-        return logExecuteAndReturn("countQuery",
-                countRequestBuilder, countRequestBuilder.execute()).getHits()
-                .totalHits();
+        return searchQuery("countQuery", countRequestBuilder, timeoutMillis)
+                .getHits().totalHits();
     }
 
     /**

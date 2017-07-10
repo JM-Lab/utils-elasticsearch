@@ -30,7 +30,7 @@ public class JMElasticsearchDelete {
 	 */
 	public DeleteResponse
 	deleteQuery(DeleteRequestBuilder deleteRequestBuilder) {
-		return JMElasticsearchUtil.logExecuteAndReturn("deleteQuery",
+		return JMElasticsearchUtil.logRequestQueryAndReturn("deleteQuery",
 				deleteRequestBuilder, deleteRequestBuilder.execute());
 	}
 
@@ -43,7 +43,7 @@ public class JMElasticsearchDelete {
 	public DeleteIndexResponse deleteIndices(String... indices) {
 		DeleteIndexRequestBuilder requestBuilder =
 				esClient.admin().indices().prepareDelete(indices);
-		return JMElasticsearchUtil.logExecuteAndReturn("deleteIndices",
+		return JMElasticsearchUtil.logRequestQueryAndReturn("deleteIndices",
 				requestBuilder, requestBuilder.execute());
 	}
 
