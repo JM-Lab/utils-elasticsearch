@@ -87,7 +87,8 @@ class JMElasticsearchBulk {
 
     private void logBulkSendingSuccess(BulkResponse bulkResponse) {
         log.info("[Success] Sending Bulk - size = {}, tookInMillis = {}",
-                bulkResponse.getItems().length, bulkResponse.getTookInMillis());
+                bulkResponse.getItems().length,
+                bulkResponse.getTook().millis());
     }
 
     private BulkProcessor

@@ -80,8 +80,7 @@ public class JMEmbeddedElasticsearch extends Node {
                 .put("network.host", networkHost).put("path.home", homePath)
                 .put("transport.type", "netty4")
                 // .put("discovery.type", "none")
-                .put("http.type", "netty4").put("script.inline", "true")
-                .put("node.ingest", nodeIngest);
+                .put("http.type", "netty4").put("node.ingest", nodeIngest);
     }
 
     /*

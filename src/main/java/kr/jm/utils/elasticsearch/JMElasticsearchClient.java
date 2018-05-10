@@ -21,7 +21,7 @@ import org.elasticsearch.cluster.metadata.MappingMetaData;
 import org.elasticsearch.common.collect.ImmutableOpenMap;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.settings.Settings.Builder;
-import org.elasticsearch.common.transport.InetSocketTransportAddress;
+import org.elasticsearch.common.transport.TransportAddress;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.transport.client.PreBuiltTransportClient;
@@ -120,7 +120,7 @@ public class JMElasticsearchClient extends PreBuiltTransportClient {
         try {
             for (String ipPort : elasticsearchConnect.split(",")) {
                 String[] separatedIpPort = ipPort.split(":");
-                addTransportAddress(new InetSocketTransportAddress(
+                addTransportAddress(new TransportAddress(
                         InetAddress.getByName(separatedIpPort[0]),
                         Integer.parseInt(separatedIpPort[1])));
             }

@@ -1,6 +1,6 @@
 package kr.jm.utils.elasticsearch;
 
-import org.elasticsearch.action.ListenableActionFuture;
+import org.elasticsearch.action.ActionFuture;
 import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.action.index.IndexRequestBuilder;
 import org.elasticsearch.action.index.IndexResponse;
@@ -38,13 +38,13 @@ public class JMElasticsearchIndex {
     }
 
     /**
-     * Index query async listenable action future.
+     * Index query async action future.
      *
      * @param indexRequestBuilder the index request builder
-     * @return the listenable action future
+     * @return the action future
      */
-    public ListenableActionFuture<IndexResponse>
-    indexQueryAsync(IndexRequestBuilder indexRequestBuilder) {
+    public ActionFuture<IndexResponse> indexQueryAsync(
+            IndexRequestBuilder indexRequestBuilder) {
         return JMElasticsearchUtil.logRequestQuery("indexQueryAsync",
                 indexRequestBuilder
         ).execute();
@@ -52,10 +52,12 @@ public class JMElasticsearchIndex {
 
     private IndexRequestBuilder buildIndexRequest(String jsonSource,
             String index, String type, String id) {
-        return getPrepareIndex(index, type, id).setSource(jsonSource);
+        return buildIndexRequest(
+                JMElasticsearchUtil.buildSourceByJsonMapper(jsonSource), index,
+                type, id);
     }
 
-    private IndexRequestBuilder buildIndexRequest(Map<String, Object> source,
+    private IndexRequestBuilder buildIndexRequest(Map<String, ?> source,
             String index, String type, String id) {
         return getPrepareIndex(index, type, id).setSource(source);
     }
@@ -74,7 +76,7 @@ public class JMElasticsearchIndex {
     }
 
     private UpdateRequestBuilder buildPrepareUpsert(String index, String type,
-            String id, Map<String, Object> source) {
+            String id, Map<String, ?> source) {
         return jmESClient.prepareUpdate(index, type, id).setDoc(source)
                 .setUpsert(new IndexRequest(index, type, id).source(source));
     }
@@ -92,12 +94,12 @@ public class JMElasticsearchIndex {
     }
 
     /**
-     * Upsert query async listenable action future.
+     * Upsert query async action future.
      *
      * @param updateRequestBuilder the update request builder
-     * @return the listenable action future
+     * @return the action future
      */
-    public ListenableActionFuture<UpdateResponse>
+    public ActionFuture<UpdateResponse>
     upsertQueryAsync(UpdateRequestBuilder updateRequestBuilder) {
         return JMElasticsearchUtil.logRequestQuery("upsertQueryAsync",
                 updateRequestBuilder
@@ -113,22 +115,22 @@ public class JMElasticsearchIndex {
      * @param id     the id
      * @return the update response
      */
-    public UpdateResponse upsertData(Map<String, Object> source, String index,
+    public UpdateResponse upsertData(Map<String, ?> source, String index,
             String type, String id) {
         return upsertQuery(buildPrepareUpsert(index, type, id, source));
     }
 
     /**
-     * Upsert data async listenable action future.
+     * Upsert data async action future.
      *
      * @param source the source
      * @param index  the index
      * @param type   the type
      * @param id     the id
-     * @return the listenable action future
+     * @return the action future
      */
-    public ListenableActionFuture<UpdateResponse> upsertDataAsync(
-            Map<String, Object> source, String index, String type, String id) {
+    public ActionFuture<UpdateResponse> upsertDataAsync(
+            Map<String, ?> source, String index, String type, String id) {
         return upsertQueryAsync(buildPrepareUpsert(index, type, id, source));
     }
 
@@ -147,15 +149,15 @@ public class JMElasticsearchIndex {
     }
 
     /**
-     * Upsert data async listenable action future.
+     * Upsert data async action future.
      *
      * @param jsonSource the json source
      * @param index      the index
      * @param type       the type
      * @param id         the id
-     * @return the listenable action future
+     * @return the action future
      */
-    public ListenableActionFuture<UpdateResponse> upsertDataAsync(
+    public ActionFuture<UpdateResponse> upsertDataAsync(
             String jsonSource, String index, String type, String id) {
         return upsertQueryAsync(
                 buildPrepareUpsert(index, type, id, jsonSource));
@@ -178,15 +180,15 @@ public class JMElasticsearchIndex {
     }
 
     /**
-     * Upsert data a sync with object mapper listenable action future.
+     * Upsert data a sync with object mapper action future.
      *
      * @param sourceObject the source object
      * @param index        the index
      * @param type         the type
      * @param id           the id
-     * @return the listenable action future
+     * @return the action future
      */
-    public ListenableActionFuture<UpdateResponse>
+    public ActionFuture<UpdateResponse>
     upsertDataASyncWithObjectMapper(Object sourceObject, String index,
             String type, String id) {
         return upsertDataAsync(
@@ -203,7 +205,7 @@ public class JMElasticsearchIndex {
      * @param id     the id
      * @return the index response
      */
-    public IndexResponse sendData(Map<String, Object> source, String index,
+    public IndexResponse sendData(Map<String, ?> source, String index,
             String type, String id) {
         return indexQuery(buildIndexRequest(source, index, type, id));
     }
@@ -216,7 +218,7 @@ public class JMElasticsearchIndex {
      * @param type   the type
      * @return the string
      */
-    public String sendData(Map<String, Object> source, String index,
+    public String sendData(Map<String, ?> source, String index,
             String type) {
         return sendData(source, index, type, null).getId();
     }
@@ -278,70 +280,70 @@ public class JMElasticsearchIndex {
     }
 
     /**
-     * Send data async listenable action future.
+     * Send data async action future.
      *
      * @param source the source
      * @param index  the index
      * @param type   the type
      * @param id     the id
-     * @return the listenable action future
+     * @return the action future
      */
-    public ListenableActionFuture<IndexResponse> sendDataAsync(
+    public ActionFuture<IndexResponse> sendDataAsync(
             Map<String, Object> source, String index, String type, String id) {
         return indexQueryAsync(buildIndexRequest(source, index, type, id));
     }
 
     /**
-     * Send data async listenable action future.
+     * Send data async action future.
      *
      * @param source the source
      * @param index  the index
      * @param type   the type
-     * @return the listenable action future
+     * @return the action future
      */
-    public ListenableActionFuture<IndexResponse> sendDataAsync(
+    public ActionFuture<IndexResponse> sendDataAsync(
             Map<String, Object> source, String index, String type) {
         return indexQueryAsync(buildIndexRequest(source, index, type, null));
     }
 
     /**
-     * Send data async listenable action future.
+     * Send data async action future.
      *
      * @param jsonSource the json source
      * @param index      the index
      * @param type       the type
      * @param id         the id
-     * @return the listenable action future
+     * @return the action future
      */
-    public ListenableActionFuture<IndexResponse> sendDataAsync(
+    public ActionFuture<IndexResponse> sendDataAsync(
             String jsonSource, String index, String type, String id) {
         return indexQueryAsync(buildIndexRequest(jsonSource, index, type, id));
     }
 
     /**
-     * Send data async listenable action future.
+     * Send data async action future.
      *
      * @param jsonSource the json source
      * @param index      the index
      * @param type       the type
-     * @return the listenable action future
+     * @return the action future
      */
-    public ListenableActionFuture<IndexResponse>
+    public ActionFuture<IndexResponse>
     sendDataAsync(String jsonSource, String index, String type) {
         return indexQueryAsync(
                 buildIndexRequest(jsonSource, index, type, null));
     }
 
     /**
-     * Send data async with object mapper listenable action future.
+     * Send data async with object mapper action future.
      *
      * @param sourceObject the source object
      * @param index        the index
      * @param type         the type
      * @param id           the id
-     * @return the listenable action future
+     * @return the action future
      */
-    public ListenableActionFuture<IndexResponse> sendDataAsyncWithObjectMapper(
+    public ActionFuture<IndexResponse> sendDataAsyncWithObjectMapper(
             Object sourceObject, String index, String type, String id) {
         return indexQueryAsync(buildIndexRequest(
                 JMElasticsearchUtil.buildSourceByJsonMapper(sourceObject),
@@ -349,14 +351,14 @@ public class JMElasticsearchIndex {
     }
 
     /**
-     * Send data async with object mapper listenable action future.
+     * Send data async with object mapper action future.
      *
      * @param sourceObject the source object
      * @param index        the index
      * @param type         the type
-     * @return the listenable action future
+     * @return the action future
      */
-    public ListenableActionFuture<IndexResponse> sendDataAsyncWithObjectMapper(
+    public ActionFuture<IndexResponse> sendDataAsyncWithObjectMapper(
             Object sourceObject, String index, String type) {
         return indexQueryAsync(buildIndexRequest(
                 JMElasticsearchUtil.buildSourceByJsonMapper(sourceObject),

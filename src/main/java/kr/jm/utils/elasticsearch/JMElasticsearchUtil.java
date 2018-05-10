@@ -1,15 +1,16 @@
 package kr.jm.utils.elasticsearch;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import kr.jm.utils.exception.JMExceptionManager;
 import kr.jm.utils.helper.JMLog;
 import lombok.extern.slf4j.Slf4j;
+import org.elasticsearch.action.ActionFuture;
 import org.elasticsearch.action.ActionRequestBuilder;
-import org.elasticsearch.action.ListenableActionFuture;
 
 import java.util.Arrays;
+import java.util.Map;
 
 /**
  * The type Jm elasticsearch util.
@@ -20,6 +21,8 @@ public class JMElasticsearchUtil {
     private static final ObjectMapper JsonMapper = new ObjectMapper()
             .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
             .enable(DeserializationFeature.READ_UNKNOWN_ENUM_VALUES_AS_NULL);
+    private static final TypeReference<Map<String, ?>>
+            MAP_TYPE_REFERENCE = new TypeReference<Map<String, ?>>() {};
 
     /**
      * Log request query and return t.
@@ -31,10 +34,8 @@ public class JMElasticsearchUtil {
      * @param responseFunction the response function
      * @return the t
      */
-    public static <R extends ActionRequestBuilder, T> T
-    logRequestQueryAndReturn(
-            String method, R requestBuilder,
-            ListenableActionFuture<T> responseFunction) {
+    public static <R extends ActionRequestBuilder, T> T logRequestQueryAndReturn(
+            String method, R requestBuilder, ActionFuture<T> responseFunction) {
         return logRequestQueryAndReturn(method, requestBuilder,
                 responseFunction, null);
     }
@@ -52,7 +53,7 @@ public class JMElasticsearchUtil {
      */
     public static <R extends ActionRequestBuilder, T> T logRequestQueryAndReturn(
             String method, R requestBuilder,
-            ListenableActionFuture<T> responseFunction, Long timeoutMillis) {
+            ActionFuture<T> responseFunction, Long timeoutMillis) {
         try {
             logRequestQuery(method, requestBuilder, timeoutMillis);
             return timeoutMillis == null || timeoutMillis == 0 ?
@@ -84,17 +85,32 @@ public class JMElasticsearchUtil {
     }
 
     /**
-     * Build source by json mapper string.
+     * Build source by json mapper map.
      *
      * @param sourceObject the source object
-     * @return the string
+     * @return the map
      */
-    static String buildSourceByJsonMapper(Object sourceObject) {
+    static Map<String, ?> buildSourceByJsonMapper(Object sourceObject) {
         try {
-            return JsonMapper.writeValueAsString(sourceObject);
-        } catch (JsonProcessingException e) {
+            return JsonMapper.convertValue(sourceObject, MAP_TYPE_REFERENCE);
+        } catch (Exception e) {
             return JMExceptionManager.handleExceptionAndThrowRuntimeEx(log, e,
                     "buildSourceByJsonMapper", sourceObject);
+        }
+    }
+
+    /**
+     * Build source by json mapper map.
+     *
+     * @param jsonObjectString the json object string
+     * @return the map
+     */
+    static Map<String, ?> buildSourceByJsonMapper(String jsonObjectString) {
+        try {
+            return JsonMapper.readValue(jsonObjectString, MAP_TYPE_REFERENCE);
+        } catch (Exception e) {
+            return JMExceptionManager.handleExceptionAndThrowRuntimeEx(log, e,
+                    "buildSourceByJsonMapper", jsonObjectString);
         }
     }
 
