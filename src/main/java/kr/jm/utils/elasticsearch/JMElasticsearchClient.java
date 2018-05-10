@@ -75,14 +75,34 @@ public class JMElasticsearchClient extends PreBuiltTransportClient {
      * Instantiates a new Jm elasticsearch client.
      *
      * @param elasticsearchConnect the elasticsearch connect
-     * @param nodeName             the node name
      * @param clientTransportSniff the client transport sniff
-     * @param ignoreClusterName    the ignore cluster name
      */
-    public JMElasticsearchClient(String elasticsearchConnect, String nodeName,
-            boolean clientTransportSniff, boolean ignoreClusterName) {
-        this(elasticsearchConnect, getSettingsBuilder(nodeName,
-                clientTransportSniff, ignoreClusterName).build());
+    public JMElasticsearchClient(String elasticsearchConnect,
+            boolean clientTransportSniff) {
+        this(elasticsearchConnect, OS.getHostname(), clientTransportSniff);
+    }
+
+    /**
+     * Instantiates a new Jm elasticsearch client.
+     *
+     * @param elasticsearchConnect the elasticsearch connect
+     * @param clientTransportSniff the client transport sniff
+     * @param clusterName          the cluster name
+     */
+    public JMElasticsearchClient(String elasticsearchConnect,
+            boolean clientTransportSniff, String clusterName) {
+        this(elasticsearchConnect, OS.getHostname(), clientTransportSniff,
+                clusterName);
+    }
+
+    /**
+     * Instantiates a new Jm elasticsearch client.
+     *
+     * @param elasticsearchConnect the elasticsearch connect
+     * @param nodeName             the node name
+     */
+    public JMElasticsearchClient(String elasticsearchConnect, String nodeName) {
+        this(elasticsearchConnect, nodeName, true);
     }
 
     /**
@@ -94,7 +114,7 @@ public class JMElasticsearchClient extends PreBuiltTransportClient {
      */
     public JMElasticsearchClient(String elasticsearchConnect, String nodeName,
             boolean clientTransportSniff) {
-        this(elasticsearchConnect, nodeName, clientTransportSniff, true);
+        this(elasticsearchConnect, nodeName, clientTransportSniff, null);
     }
 
     /**
@@ -102,9 +122,14 @@ public class JMElasticsearchClient extends PreBuiltTransportClient {
      *
      * @param elasticsearchConnect the elasticsearch connect
      * @param nodeName             the node name
+     * @param clientTransportSniff the client transport sniff
+     * @param clusterName          the cluster name
      */
-    public JMElasticsearchClient(String elasticsearchConnect, String nodeName) {
-        this(elasticsearchConnect, nodeName, true);
+    public JMElasticsearchClient(String elasticsearchConnect, String nodeName,
+            boolean clientTransportSniff, String clusterName) {
+        this(elasticsearchConnect,
+                getSettingsBuilder(nodeName, clientTransportSniff, clusterName)
+                        .build());
     }
 
     /**
@@ -126,7 +151,8 @@ public class JMElasticsearchClient extends PreBuiltTransportClient {
             }
         } catch (Exception e) {
             JMExceptionManager.handleExceptionAndThrowRuntimeEx(log, e,
-                    "JMElasticsearchClient", elasticsearchConnect, settings);
+                    "JMElasticsearchClient", elasticsearchConnect,
+                    settings);
         }
         JMLog.info(log, "initElasticsearchClient", elasticsearchConnect,
                 settings);
@@ -140,29 +166,20 @@ public class JMElasticsearchClient extends PreBuiltTransportClient {
      * Gets settings builder.
      *
      * @param nodeName             the node name
+     * @param clientTransportSniff the client transport sniff
      * @param clusterName          the cluster name
-     * @param clientTransportSniff the client transport sniff
      * @return the settings builder
      */
     public static Builder getSettingsBuilder(String nodeName,
-            String clusterName, boolean clientTransportSniff) {
-        return getSettingsBuilder(nodeName, clientTransportSniff, false)
-                .put(CLUSTER_NAME, clusterName);
-    }
-
-    /**
-     * Gets settings builder.
-     *
-     * @param nodeName             the node name
-     * @param clientTransportSniff the client transport sniff
-     * @param ignoreClusterName    the ignore cluster name
-     * @return the settings builder
-     */
-    public static Builder getSettingsBuilder(String nodeName,
-            boolean clientTransportSniff, boolean ignoreClusterName) {
-        return Settings.builder().put(NODE_NAME, nodeName)
+            boolean clientTransportSniff, String clusterName) {
+        boolean isNullClusterName = Objects.isNull(clusterName);
+        Builder builder = Settings.builder().put(NODE_NAME, nodeName)
                 .put(CLIENT_TRANSPORT_SNIFF, clientTransportSniff)
-                .put(CLIENT_TRANSPORT_IGNORE_CLUSTER_NAME, ignoreClusterName);
+                .put(CLIENT_TRANSPORT_IGNORE_CLUSTER_NAME,
+                        isNullClusterName);
+        if (!isNullClusterName)
+            builder.put(CLUSTER_NAME, clusterName);
+        return builder;
     }
 
     /**
@@ -191,7 +208,8 @@ public class JMElasticsearchClient extends PreBuiltTransportClient {
         CreateIndexRequestBuilder createIndexRequestBuilder =
                 admin().indices().prepareCreate(index);
         return JMElasticsearchUtil.logRequestQueryAndReturn("create",
-                createIndexRequestBuilder, createIndexRequestBuilder.execute())
+                createIndexRequestBuilder,
+                createIndexRequestBuilder.execute())
                 .isAcknowledged();
     }
 
@@ -243,8 +261,9 @@ public class JMElasticsearchClient extends PreBuiltTransportClient {
                 admin().indices().prepareGetMappings(indices);
         return JMElasticsearchUtil
                 .logRequestQueryAndReturn("getMappingsResponse",
-                getMappingsRequestBuilder, getMappingsRequestBuilder.execute
-                        ()).getMappings();
+                        getMappingsRequestBuilder,
+                        getMappingsRequestBuilder.execute
+                                ()).getMappings();
     }
 
     /**
@@ -257,8 +276,8 @@ public class JMElasticsearchClient extends PreBuiltTransportClient {
                 admin().indices().prepareStats().all();
         return JMElasticsearchUtil
                 .logRequestQueryAndReturn("getAllIndicesStats",
-                indicesStatsRequestBuilder,
-                indicesStatsRequestBuilder.execute()).getIndices();
+                        indicesStatsRequestBuilder,
+                        indicesStatsRequestBuilder.execute()).getIndices();
     }
 
     /**
@@ -315,8 +334,9 @@ public class JMElasticsearchClient extends PreBuiltTransportClient {
     public Optional<Map<String, Object>> getMappings(String index, String
             type) {
         try {
-            return Optional.of(getMappingsResponse(index).get(index).get(type)
-                    .getSourceAsMap());
+            return Optional
+                    .of(getMappingsResponse(index).get(index).get(type)
+                            .getSourceAsMap());
         } catch (Exception e) {
             return JMExceptionManager.handleExceptionAndReturnEmptyOptional
                     (log, e, "getMappings", index, type);
