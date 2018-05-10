@@ -24,6 +24,9 @@ import static java.util.stream.Collectors.toList;
 import static kr.jm.utils.helper.JMOptional.ifNotNull;
 import static kr.jm.utils.helper.JMPredicate.peek;
 
+/**
+ * The type Jm elasticsearch bulk.
+ */
 @Slf4j
 class JMElasticsearchBulk {
 
@@ -73,6 +76,11 @@ class JMElasticsearchBulk {
         }
     };
 
+    /**
+     * Instantiates a new Jm elasticsearch bulk.
+     *
+     * @param jmElasticsearchClient the jm elasticsearch client
+     */
     JMElasticsearchBulk(JMElasticsearchClient jmElasticsearchClient) {
         this.jmESClient = jmElasticsearchClient;
     }
@@ -88,10 +96,10 @@ class JMElasticsearchBulk {
     }
 
     /**
-     * Sets the bulk processor.
+     * Sets bulk processor.
      *
      * @param bulkActions          the bulk actions
-     * @param bulkSizeKB           the bulk size KB
+     * @param bulkSizeKB           the bulk size kb
      * @param flushIntervalSeconds the flush interval seconds
      */
     public void setBulkProcessor(int bulkActions, long bulkSizeKB,
@@ -101,11 +109,11 @@ class JMElasticsearchBulk {
     }
 
     /**
-     * Sets the bulk processor.
+     * Sets bulk processor.
      *
      * @param bulkProcessorListener the bulk processor listener
      * @param bulkActions           the bulk actions
-     * @param bulkSizeKB            the bulk size KB
+     * @param bulkSizeKB            the bulk size kb
      * @param flushIntervalSeconds  the flush interval seconds
      */
     public void setBulkProcessor(Listener bulkProcessorListener,
@@ -115,7 +123,7 @@ class JMElasticsearchBulk {
     }
 
     /**
-     * Gets the bulk processor builder.
+     * Gets bulk processor builder.
      *
      * @param bulkProcessorListener the bulk processor listener
      * @param bulkActions           the bulk actions
@@ -140,11 +148,11 @@ class JMElasticsearchBulk {
     }
 
     /**
-     * Builds the bulk processor.
+     * Build bulk processor bulk processor.
      *
      * @param bulkProcessorListener the bulk processor listener
      * @param bulkActions           the bulk actions
-     * @param bulkSizeKB            the bulk size KB
+     * @param bulkSizeKB            the bulk size kb
      * @param flushIntervalSeconds  the flush interval seconds
      * @param concurrentRequests    the concurrent requests
      * @param backoffPolicy         the backoff policy
@@ -160,11 +168,11 @@ class JMElasticsearchBulk {
     }
 
     /**
-     * Builds the bulk processor.
+     * Build bulk processor bulk processor.
      *
      * @param bulkProcessorListener the bulk processor listener
      * @param bulkActions           the bulk actions
-     * @param bulkSizeKB            the bulk size KB
+     * @param bulkSizeKB            the bulk size kb
      * @param flushIntervalSeconds  the flush interval seconds
      * @return the bulk processor
      */
@@ -188,11 +196,26 @@ class JMElasticsearchBulk {
                 .collect(toList()));
     }
 
+    /**
+     * Send with bulk processor.
+     *
+     * @param source the source
+     * @param index  the index
+     * @param type   the type
+     */
     public void sendWithBulkProcessor(Map<String, Object> source, String index,
             String type) {
         sendWithBulkProcessor(source, index, type, null);
     }
 
+    /**
+     * Send with bulk processor.
+     *
+     * @param source the source
+     * @param index  the index
+     * @param type   the type
+     * @param id     the id
+     */
     public void sendWithBulkProcessor(Map<String, Object> source, String index,
             String type, String id) {
         sendWithBulkProcessor(
@@ -221,11 +244,26 @@ class JMElasticsearchBulk {
                 : new IndexRequest(index, type, id);
     }
 
+    /**
+     * Send with bulk processor and object mapper.
+     *
+     * @param object the object
+     * @param index  the index
+     * @param type   the type
+     */
     public void sendWithBulkProcessorAndObjectMapper(Object object,
             String index, String type) {
         sendWithBulkProcessorAndObjectMapper(object, index, type, null);
     }
 
+    /**
+     * Send with bulk processor and object mapper.
+     *
+     * @param object the object
+     * @param index  the index
+     * @param type   the type
+     * @param id     the id
+     */
     public void sendWithBulkProcessorAndObjectMapper(Object object,
             String index, String type, String id) {
         sendWithBulkProcessor(buildIndexRequest(index, type, id)
@@ -241,6 +279,11 @@ class JMElasticsearchBulk {
         indexRequestList.forEach(this::sendWithBulkProcessor);
     }
 
+    /**
+     * Send with bulk processor.
+     *
+     * @param indexRequest the index request
+     */
     public void sendWithBulkProcessor(IndexRequest indexRequest) {
         Optional.ofNullable(this.bulkProcessor)
                 .orElseGet(() -> setAndReturnBulkProcessor(BulkProcessor
@@ -330,7 +373,7 @@ class JMElasticsearchBulk {
     }
 
     /**
-     * Builds the bulk index request builder.
+     * Build bulk index request builder bulk request builder.
      *
      * @param indexRequestBuilderList the index request builder list
      * @return the bulk request builder
@@ -344,7 +387,7 @@ class JMElasticsearchBulk {
     }
 
     /**
-     * Builds the delete bulk request builder.
+     * Build delete bulk request builder bulk request builder.
      *
      * @param deleteRequestBuilderList the delete request builder list
      * @return the bulk request builder
@@ -358,9 +401,9 @@ class JMElasticsearchBulk {
     }
 
     /**
-     * Builds the update bulk request builder.
+     * Build update bulk request builder bulk request builder.
      *
-     * @param updateRequestBuilderList the index request builder list
+     * @param updateRequestBuilderList the update request builder list
      * @return the bulk request builder
      */
     public BulkRequestBuilder buildUpdateBulkRequestBuilder(
@@ -394,7 +437,7 @@ class JMElasticsearchBulk {
     }
 
     /**
-     * Execute bulk request.
+     * Execute bulk request bulk response.
      *
      * @param bulkRequestBuilder the bulk request builder
      * @return the bulk response
@@ -406,11 +449,11 @@ class JMElasticsearchBulk {
     }
 
     /**
-     * Delete bulk docs.
+     * Delete bulk docs boolean.
      *
      * @param index the index
      * @param type  the type
-     * @return true, if successful
+     * @return the boolean
      */
     public boolean deleteBulkDocs(String index, String type) {
         return executeBulkRequest(buildDeleteBulkRequestBuilder(
@@ -418,7 +461,7 @@ class JMElasticsearchBulk {
     }
 
     /**
-     * Delete bulk docs.
+     * Delete bulk docs bulk response.
      *
      * @param index              the index
      * @param type               the type
@@ -433,12 +476,12 @@ class JMElasticsearchBulk {
     }
 
     /**
-     * Delete bulk docs.
+     * Delete bulk docs boolean.
      *
      * @param indexList          the index list
      * @param typeList           the type list
      * @param filterQueryBuilder the filter query builder
-     * @return true, if successful
+     * @return the boolean
      */
     public boolean deleteBulkDocs(List<String> indexList, List<String> typeList,
             QueryBuilder filterQueryBuilder) {

@@ -32,7 +32,7 @@ import java.util.*;
 import static java.util.stream.Collectors.toList;
 
 /**
- * The Class JMElasticsearchClient.
+ * The type Jm elasticsearch client.
  */
 @Slf4j
 public class JMElasticsearchClient extends PreBuiltTransportClient {
@@ -56,14 +56,14 @@ public class JMElasticsearchClient extends PreBuiltTransportClient {
     private JMElasticsearchDelete jmESDelete;
 
     /**
-     * Instantiates a new JM elasticsearch client.
+     * Instantiates a new Jm elasticsearch client.
      */
     public JMElasticsearchClient() {
         this(JMString.buildIpOrHostnamePortPair(OS.getHostname(), 9300));
     }
 
     /**
-     * Instantiates a new JM elasticsearch client.
+     * Instantiates a new Jm elasticsearch client.
      *
      * @param elasticsearchConnect the elasticsearch connect
      */
@@ -72,7 +72,7 @@ public class JMElasticsearchClient extends PreBuiltTransportClient {
     }
 
     /**
-     * Instantiates a new JM elasticsearch client.
+     * Instantiates a new Jm elasticsearch client.
      *
      * @param elasticsearchConnect the elasticsearch connect
      * @param nodeName             the node name
@@ -86,7 +86,7 @@ public class JMElasticsearchClient extends PreBuiltTransportClient {
     }
 
     /**
-     * Instantiates a new JM elasticsearch client.
+     * Instantiates a new Jm elasticsearch client.
      *
      * @param elasticsearchConnect the elasticsearch connect
      * @param nodeName             the node name
@@ -98,7 +98,7 @@ public class JMElasticsearchClient extends PreBuiltTransportClient {
     }
 
     /**
-     * Instantiates a new JM elasticsearch client.
+     * Instantiates a new Jm elasticsearch client.
      *
      * @param elasticsearchConnect the elasticsearch connect
      * @param nodeName             the node name
@@ -108,7 +108,7 @@ public class JMElasticsearchClient extends PreBuiltTransportClient {
     }
 
     /**
-     * Instantiates a new JM elasticsearch client.
+     * Instantiates a new Jm elasticsearch client.
      *
      * @param elasticsearchConnect the elasticsearch connect
      * @param settings             the settings
@@ -137,7 +137,7 @@ public class JMElasticsearchClient extends PreBuiltTransportClient {
     }
 
     /**
-     * Gets the settings builder.
+     * Gets settings builder.
      *
      * @param nodeName             the node name
      * @param clusterName          the cluster name
@@ -151,7 +151,7 @@ public class JMElasticsearchClient extends PreBuiltTransportClient {
     }
 
     /**
-     * Gets the settings builder.
+     * Gets settings builder.
      *
      * @param nodeName             the node name
      * @param clientTransportSniff the client transport sniff
@@ -166,10 +166,10 @@ public class JMElasticsearchClient extends PreBuiltTransportClient {
     }
 
     /**
-     * Checks if is exists.
+     * Is exists boolean.
      *
      * @param index the index
-     * @return true, if is exists
+     * @return the boolean
      */
     public boolean isExists(String index) {
         IndicesExistsRequestBuilder indicesExistsRequestBuilder =
@@ -182,10 +182,10 @@ public class JMElasticsearchClient extends PreBuiltTransportClient {
     }
 
     /**
-     * Creates the.
+     * Create boolean.
      *
      * @param index the index
-     * @return true, if successful
+     * @return the boolean
      */
     public boolean create(String index) {
         CreateIndexRequestBuilder createIndexRequestBuilder =
@@ -196,18 +196,18 @@ public class JMElasticsearchClient extends PreBuiltTransportClient {
     }
 
     /**
-     * Extract id list.
+     * Extract id list list.
      *
      * @param searchResponse the search response
      * @return the list
      */
     public List<String> extractIdList(SearchResponse searchResponse) {
-        return Arrays.stream(searchResponse.getHits().hits())
+        return Arrays.stream(searchResponse.getHits().getHits())
                 .map(SearchHit::getId).collect(toList());
     }
 
     /**
-     * Gets the all id list.
+     * Gets all id list.
      *
      * @param index the index
      * @param type  the type
@@ -218,7 +218,7 @@ public class JMElasticsearchClient extends PreBuiltTransportClient {
     }
 
     /**
-     * Extract id list.
+     * Extract id list list.
      *
      * @param index              the index
      * @param type               the type
@@ -232,7 +232,7 @@ public class JMElasticsearchClient extends PreBuiltTransportClient {
     }
 
     /**
-     * Gets the mappings response.
+     * Gets mappings response.
      *
      * @param indices the indices
      * @return the mappings response
@@ -248,7 +248,7 @@ public class JMElasticsearchClient extends PreBuiltTransportClient {
     }
 
     /**
-     * Gets the all indices stats.
+     * Gets all indices stats.
      *
      * @return the all indices stats
      */
@@ -262,7 +262,7 @@ public class JMElasticsearchClient extends PreBuiltTransportClient {
     }
 
     /**
-     * Gets the all indices.
+     * Gets all indices.
      *
      * @return the all indices
      */
@@ -271,7 +271,7 @@ public class JMElasticsearchClient extends PreBuiltTransportClient {
     }
 
     /**
-     * Gets the filtered index list.
+     * Gets filtered index list.
      *
      * @param containedString the contained string
      * @return the filtered index list
@@ -283,7 +283,7 @@ public class JMElasticsearchClient extends PreBuiltTransportClient {
     }
 
     /**
-     * Gets the query.
+     * Gets query.
      *
      * @param getRequestBuilder the get request builder
      * @return the query
@@ -294,7 +294,7 @@ public class JMElasticsearchClient extends PreBuiltTransportClient {
     }
 
     /**
-     * Update query.
+     * Update query update response.
      *
      * @param updateRequestBuilder the update request builder
      * @return the update response
@@ -305,6 +305,13 @@ public class JMElasticsearchClient extends PreBuiltTransportClient {
                 updateRequestBuilder, updateRequestBuilder.execute());
     }
 
+    /**
+     * Gets mappings.
+     *
+     * @param index the index
+     * @param type  the type
+     * @return the mappings
+     */
     public Optional<Map<String, Object>> getMappings(String index, String
             type) {
         try {

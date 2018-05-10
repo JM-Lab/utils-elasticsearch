@@ -11,6 +11,9 @@ import org.elasticsearch.action.ListenableActionFuture;
 
 import java.util.Arrays;
 
+/**
+ * The type Jm elasticsearch util.
+ */
 @Slf4j
 public class JMElasticsearchUtil {
 
@@ -18,6 +21,16 @@ public class JMElasticsearchUtil {
             .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
             .enable(DeserializationFeature.READ_UNKNOWN_ENUM_VALUES_AS_NULL);
 
+    /**
+     * Log request query and return t.
+     *
+     * @param <R>              the type parameter
+     * @param <T>              the type parameter
+     * @param method           the method
+     * @param requestBuilder   the request builder
+     * @param responseFunction the response function
+     * @return the t
+     */
     public static <R extends ActionRequestBuilder, T> T
     logRequestQueryAndReturn(
             String method, R requestBuilder,
@@ -26,6 +39,17 @@ public class JMElasticsearchUtil {
                 responseFunction, null);
     }
 
+    /**
+     * Log request query and return t.
+     *
+     * @param <R>              the type parameter
+     * @param <T>              the type parameter
+     * @param method           the method
+     * @param requestBuilder   the request builder
+     * @param responseFunction the response function
+     * @param timeoutMillis    the timeout millis
+     * @return the t
+     */
     public static <R extends ActionRequestBuilder, T> T logRequestQueryAndReturn(
             String method, R requestBuilder,
             ListenableActionFuture<T> responseFunction, Long timeoutMillis) {
@@ -40,6 +64,15 @@ public class JMElasticsearchUtil {
         }
     }
 
+    /**
+     * Log request query r.
+     *
+     * @param <R>            the type parameter
+     * @param method         the method
+     * @param requestBuilder the request builder
+     * @param params         the params
+     * @return the r
+     */
     public static <R extends ActionRequestBuilder> R logRequestQuery(
             String method,
             R requestBuilder, Object... params) {
@@ -50,6 +83,12 @@ public class JMElasticsearchUtil {
         return requestBuilder;
     }
 
+    /**
+     * Build source by json mapper string.
+     *
+     * @param sourceObject the source object
+     * @return the string
+     */
     static String buildSourceByJsonMapper(Object sourceObject) {
         try {
             return JsonMapper.writeValueAsString(sourceObject);

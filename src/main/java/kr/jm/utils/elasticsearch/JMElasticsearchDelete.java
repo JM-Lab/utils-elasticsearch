@@ -7,14 +7,14 @@ import org.elasticsearch.action.delete.DeleteResponse;
 import org.elasticsearch.client.Client;
 
 /**
- * The Class JMElasticsearchDelete.
+ * The type Jm elasticsearch delete.
  */
 public class JMElasticsearchDelete {
 
 	private Client esClient;
 
 	/**
-	 * Instantiates a new JM elasticsearch delete.
+	 * Instantiates a new Jm elasticsearch delete.
 	 *
 	 * @param elasticsearchClient the elasticsearch client
 	 */
@@ -23,7 +23,7 @@ public class JMElasticsearchDelete {
 	}
 
 	/**
-	 * Delete query.
+	 * Delete query delete response.
 	 *
 	 * @param deleteRequestBuilder the delete request builder
 	 * @return the delete response
@@ -35,7 +35,7 @@ public class JMElasticsearchDelete {
 	}
 
 	/**
-	 * Delete indices.
+	 * Delete indices delete index response.
 	 *
 	 * @param indices the indices
 	 * @return the delete index response
@@ -48,7 +48,7 @@ public class JMElasticsearchDelete {
 	}
 
 	/**
-	 * Delete doc.
+	 * Delete doc delete response.
 	 *
 	 * @param index the index
 	 * @param type  the type

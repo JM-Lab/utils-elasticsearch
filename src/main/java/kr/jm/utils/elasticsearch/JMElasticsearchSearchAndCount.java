@@ -21,7 +21,7 @@ import static kr.jm.utils.helper.JMPredicate.getIsNotNull;
 import static org.elasticsearch.common.unit.TimeValue.timeValueMillis;
 
 /**
- * The Class JMElasticsearchSearchAndCount.
+ * The type Jm elasticsearch search and count.
  */
 public class JMElasticsearchSearchAndCount {
 
@@ -35,7 +35,7 @@ public class JMElasticsearchSearchAndCount {
     private int defaultHitsCount;
 
     /**
-     * Instantiates a new JM elasticsearch search and count.
+     * Instantiates a new Jm elasticsearch search and count.
      *
      * @param elasticsearchClient the elasticsearch client
      */
@@ -44,12 +44,25 @@ public class JMElasticsearchSearchAndCount {
         this.defaultHitsCount = DefaultHitsCount;
     }
 
+    /**
+     * Search with target count search response.
+     *
+     * @param searchRequestBuilder the search request builder
+     * @return the search response
+     */
     public SearchResponse searchWithTargetCount(
             SearchRequestBuilder searchRequestBuilder) {
         return searchQuery(
                 getSearchRequestBuilderWithCount(searchRequestBuilder));
     }
 
+    /**
+     * Search with target count search response.
+     *
+     * @param searchRequestBuilder the search request builder
+     * @param aggregationBuilders  the aggregation builders
+     * @return the search response
+     */
     public SearchResponse searchWithTargetCount(
             SearchRequestBuilder searchRequestBuilder,
             AggregationBuilder[] aggregationBuilders) {
@@ -58,6 +71,16 @@ public class JMElasticsearchSearchAndCount {
                 aggregationBuilders));
     }
 
+    /**
+     * Search with target count search response.
+     *
+     * @param isSetExplain                 the is set explain
+     * @param indices                      the indices
+     * @param types                        the types
+     * @param mustConditionQueryBuilders   the must condition query builders
+     * @param filterConditionQueryBuilders the filter condition query builders
+     * @return the search response
+     */
     public SearchResponse searchWithTargetCount(boolean isSetExplain,
             String[] indices, String[] types, QueryBuilder[]
             mustConditionQueryBuilders, QueryBuilder[]
@@ -67,6 +90,17 @@ public class JMElasticsearchSearchAndCount {
                 filterConditionQueryBuilders, null);
     }
 
+    /**
+     * Search with target count search response.
+     *
+     * @param isSetExplain                 the is set explain
+     * @param indices                      the indices
+     * @param types                        the types
+     * @param mustConditionQueryBuilders   the must condition query builders
+     * @param filterConditionQueryBuilders the filter condition query builders
+     * @param aggregationBuilders          the aggregation builders
+     * @return the search response
+     */
     public SearchResponse searchWithTargetCount(boolean isSetExplain,
             String[] indices, String[] types, QueryBuilder[]
             mustConditionQueryBuilders, QueryBuilder[]
@@ -80,11 +114,26 @@ public class JMElasticsearchSearchAndCount {
     }
 
 
+    /**
+     * Gets search request builder.
+     *
+     * @param queryBuilder the query builder
+     * @param indices      the indices
+     * @return the search request builder
+     */
     public SearchRequestBuilder getSearchRequestBuilder(QueryBuilder
             queryBuilder, String... indices) {
         return getSearchRequestBuilder(indices, null, queryBuilder);
     }
 
+    /**
+     * Gets search request builder.
+     *
+     * @param queryBuilder        the query builder
+     * @param aggregationBuilders the aggregation builders
+     * @param indices             the indices
+     * @return the search request builder
+     */
     public SearchRequestBuilder getSearchRequestBuilder(
             QueryBuilder queryBuilder,
             AggregationBuilder[] aggregationBuilders, String... indices) {
@@ -92,12 +141,29 @@ public class JMElasticsearchSearchAndCount {
                 aggregationBuilders);
     }
 
+    /**
+     * Gets search request builder.
+     *
+     * @param indices      the indices
+     * @param types        the types
+     * @param queryBuilder the query builder
+     * @return the search request builder
+     */
     public SearchRequestBuilder getSearchRequestBuilder(String[] indices,
             String[] types, QueryBuilder queryBuilder) {
         return getSearchRequestBuilder(indices, types,
                 queryBuilder, null);
     }
 
+    /**
+     * Gets search request builder.
+     *
+     * @param indices             the indices
+     * @param types               the types
+     * @param queryBuilder        the query builder
+     * @param aggregationBuilders the aggregation builders
+     * @return the search request builder
+     */
     public SearchRequestBuilder getSearchRequestBuilder(String[] indices,
             String[] types, QueryBuilder queryBuilder,
             AggregationBuilder[] aggregationBuilders) {
@@ -105,6 +171,13 @@ public class JMElasticsearchSearchAndCount {
                 queryBuilder, aggregationBuilders);
     }
 
+    /**
+     * Gets search request builder.
+     *
+     * @param searchRequestBuilder the search request builder
+     * @param aggregationBuilders  the aggregation builders
+     * @return the search request builder
+     */
     public SearchRequestBuilder getSearchRequestBuilder(
             SearchRequestBuilder searchRequestBuilder,
             AggregationBuilder[] aggregationBuilders) {
@@ -121,6 +194,17 @@ public class JMElasticsearchSearchAndCount {
     }
 
 
+    /**
+     * Gets search request builder.
+     *
+     * @param isSetExplain                 the is set explain
+     * @param indices                      the indices
+     * @param types                        the types
+     * @param mustConditionQueryBuilders   the must condition query builders
+     * @param filterConditionQueryBuilders the filter condition query builders
+     * @param aggregationBuilders          the aggregation builders
+     * @return the search request builder
+     */
     public SearchRequestBuilder getSearchRequestBuilder(boolean isSetExplain,
             String[] indices, String[] types,
             QueryBuilder[] mustConditionQueryBuilders,
@@ -141,7 +225,7 @@ public class JMElasticsearchSearchAndCount {
     }
 
     /**
-     * Gets the search request builder.
+     * Gets search request builder.
      *
      * @param isSetExplain the is set explain
      * @param indices      the indices
@@ -153,7 +237,7 @@ public class JMElasticsearchSearchAndCount {
     }
 
     /**
-     * Gets the search request builder.
+     * Gets search request builder.
      *
      * @param isSetExplain the is set explain
      * @param indices      the indices
@@ -166,7 +250,7 @@ public class JMElasticsearchSearchAndCount {
     }
 
     /**
-     * Gets the search request builder.
+     * Gets search request builder.
      *
      * @param isSetExplain the is set explain
      * @param indices      the indices
@@ -182,7 +266,7 @@ public class JMElasticsearchSearchAndCount {
 
 
     /**
-     * Gets the search request builder.
+     * Gets search request builder.
      *
      * @param isSetExplain the is set explain
      * @param queryBuilder the query builder
@@ -197,7 +281,7 @@ public class JMElasticsearchSearchAndCount {
 
 
     /**
-     * Gets the search request builder.
+     * Gets search request builder.
      *
      * @param isSetExplain        the is set explain
      * @param indices             the indices
@@ -221,7 +305,7 @@ public class JMElasticsearchSearchAndCount {
 
 
     /**
-     * Gets the search request builder with match all.
+     * Gets search request builder with match all.
      *
      * @param isSetExplain        the is set explain
      * @param indices             the indices
@@ -240,7 +324,7 @@ public class JMElasticsearchSearchAndCount {
     }
 
     /**
-     * Gets the search request builder with match all.
+     * Gets search request builder with match all.
      *
      * @param isSetExplain the is set explain
      * @param indices      the indices
@@ -254,7 +338,7 @@ public class JMElasticsearchSearchAndCount {
     }
 
     /**
-     * Gets the search request builder with match all.
+     * Gets search request builder with match all.
      *
      * @param isSetExplain the is set explain
      * @param indices      the indices
@@ -266,7 +350,7 @@ public class JMElasticsearchSearchAndCount {
     }
 
     /**
-     * Gets the search request builder with match all.
+     * Gets search request builder with match all.
      *
      * @param isSetExplain       the is set explain
      * @param indices            the indices
@@ -282,7 +366,7 @@ public class JMElasticsearchSearchAndCount {
     }
 
     /**
-     * Gets the search request builder with match all.
+     * Gets search request builder with match all.
      *
      * @param isSetExplain       the is set explain
      * @param index              the index
@@ -299,7 +383,7 @@ public class JMElasticsearchSearchAndCount {
     }
 
     /**
-     * Gets the search request builder with match all.
+     * Gets search request builder with match all.
      *
      * @param isSetExplain        the is set explain
      * @param indices             the indices
@@ -315,7 +399,7 @@ public class JMElasticsearchSearchAndCount {
     }
 
     /**
-     * Search all.
+     * Search all search response.
      *
      * @param indices             the indices
      * @param types               the types
@@ -328,7 +412,7 @@ public class JMElasticsearchSearchAndCount {
     }
 
     /**
-     * Search all.
+     * Search all search response.
      *
      * @param indices the indices
      * @param types   the types
@@ -339,7 +423,7 @@ public class JMElasticsearchSearchAndCount {
     }
 
     /**
-     * Search all.
+     * Search all search response.
      *
      * @param indices the indices
      * @param type    the type
@@ -350,7 +434,7 @@ public class JMElasticsearchSearchAndCount {
     }
 
     /**
-     * Search all.
+     * Search all search response.
      *
      * @param indices the indices
      * @return the search response
@@ -360,7 +444,7 @@ public class JMElasticsearchSearchAndCount {
     }
 
     /**
-     * Search all.
+     * Search all search response.
      *
      * @param index               the index
      * @param type                the type
@@ -376,7 +460,7 @@ public class JMElasticsearchSearchAndCount {
     }
 
     /**
-     * Search all.
+     * Search all search response.
      *
      * @param index              the index
      * @param type               the type
@@ -389,7 +473,7 @@ public class JMElasticsearchSearchAndCount {
     }
 
     /**
-     * Search all.
+     * Search all search response.
      *
      * @param index               the index
      * @param type                the type
@@ -402,7 +486,7 @@ public class JMElasticsearchSearchAndCount {
     }
 
     /**
-     * Search all.
+     * Search all search response.
      *
      * @param index the index
      * @param type  the type
@@ -414,7 +498,7 @@ public class JMElasticsearchSearchAndCount {
 
 
     /**
-     * Search all.
+     * Search all search response.
      *
      * @param indices            the indices
      * @param types              the types
@@ -427,7 +511,7 @@ public class JMElasticsearchSearchAndCount {
     }
 
     /**
-     * Search all.
+     * Search all search response.
      *
      * @param indices             the indices
      * @param types               the types
@@ -443,7 +527,7 @@ public class JMElasticsearchSearchAndCount {
     }
 
     /**
-     * Search all.
+     * Search all search response.
      *
      * @param isSetExplain the is set explain
      * @param indices      the indices
@@ -454,7 +538,7 @@ public class JMElasticsearchSearchAndCount {
     }
 
     /**
-     * Search all.
+     * Search all search response.
      *
      * @param isSetExplain the is set explain
      * @param indices      the indices
@@ -468,7 +552,7 @@ public class JMElasticsearchSearchAndCount {
 
 
     /**
-     * Search all.
+     * Search all search response.
      *
      * @param isSetExplain        the is set explain
      * @param indices             the indices
@@ -483,7 +567,7 @@ public class JMElasticsearchSearchAndCount {
     }
 
     /**
-     * Search all.
+     * Search all search response.
      *
      * @param isSetExplain       the is set explain
      * @param indices            the indices
@@ -498,7 +582,7 @@ public class JMElasticsearchSearchAndCount {
     }
 
     /**
-     * Search all.
+     * Search all search response.
      *
      * @param isSetExplain        the is set explain
      * @param indices             the indices
@@ -516,7 +600,7 @@ public class JMElasticsearchSearchAndCount {
     }
 
     /**
-     * Search all with target count.
+     * Search all with target count search response.
      *
      * @param indices the indices
      * @param types   the types
@@ -528,7 +612,7 @@ public class JMElasticsearchSearchAndCount {
     }
 
     /**
-     * Search all with target count.
+     * Search all with target count search response.
      *
      * @param indices            the indices
      * @param types              the types
@@ -542,7 +626,7 @@ public class JMElasticsearchSearchAndCount {
     }
 
     /**
-     * Search all with target count.
+     * Search all with target count search response.
      *
      * @param indices             the indices
      * @param types               the types
@@ -557,7 +641,7 @@ public class JMElasticsearchSearchAndCount {
 
 
     /**
-     * Search all with target count.
+     * Search all with target count search response.
      *
      * @param index              the index
      * @param type               the type
@@ -570,7 +654,7 @@ public class JMElasticsearchSearchAndCount {
     }
 
     /**
-     * Search all with target count.
+     * Search all with target count search response.
      *
      * @param index               the index
      * @param type                the type
@@ -583,7 +667,7 @@ public class JMElasticsearchSearchAndCount {
     }
 
     /**
-     * Search all with target count.
+     * Search all with target count search response.
      *
      * @param index the index
      * @param type  the type
@@ -594,7 +678,7 @@ public class JMElasticsearchSearchAndCount {
     }
 
     /**
-     * Search all with target count.
+     * Search all with target count search response.
      *
      * @param indices the indices
      * @return the search response
@@ -604,7 +688,7 @@ public class JMElasticsearchSearchAndCount {
     }
 
     /**
-     * Search all with target count.
+     * Search all with target count search response.
      *
      * @param index               the index
      * @param type                the type
@@ -621,7 +705,7 @@ public class JMElasticsearchSearchAndCount {
     }
 
     /**
-     * Search all with target count.
+     * Search all with target count search response.
      *
      * @param indices             the indices
      * @param types               the types
@@ -638,14 +722,14 @@ public class JMElasticsearchSearchAndCount {
     }
 
     /**
-     * Search query.
+     * Search query search response.
      *
      * @param searchRequestBuilder the search request builder
      * @return the search response
      */
     public SearchResponse
     searchQuery(SearchRequestBuilder searchRequestBuilder) {
-        return searchQuery(searchRequestBuilder, this.timeoutMillis);
+        return searchQuery(searchRequestBuilder, timeoutMillis);
     }
 
     private SearchResponse searchQuery(String method,
@@ -655,30 +739,44 @@ public class JMElasticsearchSearchAndCount {
                 searchRequestBuilder.execute(), timeoutMillis);
     }
 
+    /**
+     * Search query search response.
+     *
+     * @param searchRequestBuilder the search request builder
+     * @param timeoutMillis        the timeout millis
+     * @return the search response
+     */
     public SearchResponse searchQuery(SearchRequestBuilder searchRequestBuilder,
             long timeoutMillis) {
         return searchQuery("searchQuery", searchRequestBuilder, timeoutMillis);
     }
 
     /**
-     * Count query.
+     * Count query long.
      *
      * @param countRequestBuilder the count request builder
      * @return the long
      */
     public long countQuery(SearchRequestBuilder countRequestBuilder) {
-        return countQuery(countRequestBuilder, this.timeoutMillis);
+        return countQuery(countRequestBuilder, timeoutMillis);
     }
 
+    /**
+     * Count query long.
+     *
+     * @param countRequestBuilder the count request builder
+     * @param timeoutMillis       the timeout millis
+     * @return the long
+     */
     public long countQuery(SearchRequestBuilder countRequestBuilder,
             long timeoutMillis) {
         countRequestBuilder.setSize(0);
         return searchQuery("countQuery", countRequestBuilder, timeoutMillis)
-                .getHits().totalHits();
+                .getHits().getTotalHits();
     }
 
     /**
-     * Count.
+     * Count long.
      *
      * @param indices the indices
      * @return the long
@@ -688,7 +786,7 @@ public class JMElasticsearchSearchAndCount {
     }
 
     /**
-     * Count.
+     * Count long.
      *
      * @param indices the indices
      * @param types   the types
@@ -698,6 +796,14 @@ public class JMElasticsearchSearchAndCount {
         return count(indices, types, null);
     }
 
+    /**
+     * Count long.
+     *
+     * @param indices            the indices
+     * @param types              the types
+     * @param filterQueryBuilder the filter query builder
+     * @return the long
+     */
     public long count(String[] indices, String[] types,
             QueryBuilder filterQueryBuilder) {
         return countQuery(getSearchRequestBuilderWithMatchAll(false, indices,

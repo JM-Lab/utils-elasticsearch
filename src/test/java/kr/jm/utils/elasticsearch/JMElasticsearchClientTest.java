@@ -38,11 +38,9 @@ public class JMElasticsearchClientTest {
 	/**
 	 * Sets the up.
 	 *
-	 * @throws Exception
-	 *             the exception
 	 */
 	@Before
-	public void setUp() throws Exception {
+	public void setUp() {
 		// Embedded Elasticsearch Node Start
 		this.jmEmbeddedElasticsearch = new JMEmbeddedElasticsearch();
 		this.jmEmbeddedElasticsearch.start();
@@ -79,11 +77,9 @@ public class JMElasticsearchClientTest {
 	/**
 	 * Test get query all indices.
 	 *
-	 * @throws Exception
-	 *             the exception
 	 */
 	@Test
-	public void testGetQueryAllIndices() throws Exception {
+	public void testGetQueryAllIndices() {
 		Map<String, Object> sourceObject = new HashMap<>();
 		sourceObject.put("key", "test");
 		String index = "client-test";
@@ -167,7 +163,7 @@ public class JMElasticsearchClientTest {
 	 * Test search query all withstats aggr.
 	 */
 	@Test
-	public final void testSearchQueryAllWithstatsAggr() {
+	public final void testSearchQueryAllWithStatsAggr() {
 		String index = "test-2015.05.12";
 		String[] indices = { index };
 		String type = "test-responsetime";
@@ -347,11 +343,9 @@ public class JMElasticsearchClientTest {
 	/**
 	 * Test delete doc query.
 	 *
-	 * @throws Exception
-	 *             the exception
 	 */
 	@Test
-	public void testDeleteDocQuery() throws Exception {
+	public void testDeleteDocQuery() {
 		String index = "test-2015.05.12";
 		String[] indices = { index };
 		String type = "test-responsetime";
@@ -396,11 +390,9 @@ public class JMElasticsearchClientTest {
 	/**
 	 * Test get query all id list.
 	 *
-	 * @throws Exception
-	 *             the exception
 	 */
 	@Test
-	public void testGetQueryAllIdList() throws Exception {
+	public void testGetQueryAllIdList() {
 		String index = "test-2015.05.12";
 		String type = "test-responsetime";
 		String test30 = "test_30";
@@ -445,11 +437,9 @@ public class JMElasticsearchClientTest {
 	/**
 	 * Test delete doc bulk docs.
 	 *
-	 * @throws Exception
-	 *             the exception
 	 */
 	@Test
-	public void testDeleteDocBulkDocs() throws Exception {
+	public void testDeleteDocBulkDocs() {
 		String index = "test-2015.05.12";
 		String type = "test-responsetime";
 		String test30 = "test_30";
@@ -508,11 +498,9 @@ public class JMElasticsearchClientTest {
 	/**
 	 * Test delete doc bulk docs with multi.
 	 *
-	 * @throws Exception
-	 *             the exception
 	 */
 	@Test
-	public void testDeleteDocBulkDocsWithMulti() throws Exception {
+	public void testDeleteDocBulkDocsWithMulti() {
 		String index = "test-2015.05.12";
 		String type = "test-responsetime";
 		String test30 = "test_30";
