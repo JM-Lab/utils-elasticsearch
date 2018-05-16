@@ -49,7 +49,7 @@ this.jmEmbeddedElasticsearch.getTransportIpPortPair());
 		
 // Bulk Processor Setting
 int bulkActions = 3;
-long bulkSizeKB = 5 * 1024;
+long bulkSizeKB = 50;
 int flushIntervalSeconds = 5;
 this.jmElasticsearchClient.setBulkProcessor(bulkActions, bulkSizeKB, flushIntervalSeconds);
 ```

@@ -2,6 +2,8 @@ package kr.jm.utils.elasticsearch;
 
 import kr.jm.utils.datastructure.JMCollections;
 import kr.jm.utils.helper.JMOptional;
+import kr.jm.utils.helper.JMPath;
+import kr.jm.utils.helper.JMPathOperation;
 import kr.jm.utils.helper.JMThread;
 import org.elasticsearch.action.bulk.BulkResponse;
 import org.elasticsearch.action.search.SearchResponse;
@@ -50,7 +52,7 @@ public class JMElasticsearchClientTest {
 
         // Bulk Processor Setting
         int bulkActions = 3;
-        long bulkSizeKB = 5 * 1024;
+        long bulkSizeKB = 50;
         int flushIntervalSeconds = 5;
         this.jmElasticsearchClient.setBulkProcessor(bulkActions, bulkSizeKB,
                 flushIntervalSeconds);
@@ -70,6 +72,7 @@ public class JMElasticsearchClientTest {
             JMThread.sleep(1000);
         jmElasticsearchClient.close();
         jmEmbeddedElasticsearch.close();
+        JMPathOperation.deleteDirOnExist(JMPath.getPath("data"));
     }
 
     /**
@@ -341,7 +344,9 @@ public class JMElasticsearchClientTest {
         searchResponse1 =
                 jmElasticsearchClient.searchAllWithTargetCount(indices, types);
         System.out.println(searchResponse1);
-        assertTrue(searchResponse1.toString().contains(test500));
+        String result = searchResponse1.toString();
+        System.out.println(result);
+        assertTrue(result.contains(test500));
     }
 
     /**

@@ -56,7 +56,7 @@ class JMElasticsearchBulk {
 
         @Override
         public void beforeBulk(long executionId, BulkRequest bulkRequest) {
-            log.info(
+            log.debug(
                     "[Before] Sending Bulk - size = {}, estimatedSizeInBytes = {}",
                     bulkRequest.requests().size(),
                     bulkRequest.estimatedSizeInBytes());
@@ -86,7 +86,7 @@ class JMElasticsearchBulk {
     }
 
     private void logBulkSendingSuccess(BulkResponse bulkResponse) {
-        log.info("[Success] Sending Bulk - size = {}, tookInMillis = {}",
+        log.debug("[Success] Sending Bulk - size = {}, tookInMillis = {}",
                 bulkResponse.getItems().length,
                 bulkResponse.getTook().millis());
     }
@@ -190,7 +190,7 @@ class JMElasticsearchBulk {
      * @param index      the index
      * @param type       the type
      */
-    public void sendWithBulkProcessor(List<Map<String, Object>> bulkSource,
+    public void sendWithBulkProcessor(List<? extends Map<String, ?>> bulkSource,
             String index, String type) {
         sendWithBulkProcessor(bulkSource.stream().map(
                 source -> buildIndexRequest(index, type, null).source(source))
@@ -204,7 +204,7 @@ class JMElasticsearchBulk {
      * @param index  the index
      * @param type   the type
      */
-    public void sendWithBulkProcessor(Map<String, Object> source, String index,
+    public void sendWithBulkProcessor(Map<String, ?> source, String index,
             String type) {
         sendWithBulkProcessor(source, index, type, null);
     }
@@ -217,7 +217,7 @@ class JMElasticsearchBulk {
      * @param type   the type
      * @param id     the id
      */
-    public void sendWithBulkProcessor(Map<String, Object> source, String index,
+    public void sendWithBulkProcessor(Map<String, ?> source, String index,
             String type, String id) {
         sendWithBulkProcessor(
                 buildIndexRequest(index, type, id).source(source));
@@ -307,7 +307,7 @@ class JMElasticsearchBulk {
      * @param index          the index
      * @param type           the type
      */
-    public void sendBulkDataAsync(List<Map<String, Object>> bulkSourceList,
+    public void sendBulkDataAsync(List<? extends Map<String, ?>> bulkSourceList,
             String index, String type) {
         executeBulkRequestAsync(
                 buildBulkIndexRequestBuilder(bulkSourceList
@@ -324,7 +324,7 @@ class JMElasticsearchBulk {
      * @param type                       the type
      * @param bulkResponseActionListener the bulk response action listener
      */
-    public void sendBulkDataAsync(List<Map<String, Object>> bulkSourceList,
+    public void sendBulkDataAsync(List<? extends Map<String, ?>> bulkSourceList,
             String index, String type,
             ActionListener<BulkResponse> bulkResponseActionListener) {
         executeBulkRequestAsync(

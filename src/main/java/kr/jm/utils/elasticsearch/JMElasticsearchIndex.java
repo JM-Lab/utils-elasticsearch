@@ -289,7 +289,7 @@ public class JMElasticsearchIndex {
      * @return the action future
      */
     public ActionFuture<IndexResponse> sendDataAsync(
-            Map<String, Object> source, String index, String type, String id) {
+            Map<String, ?> source, String index, String type, String id) {
         return indexQueryAsync(buildIndexRequest(source, index, type, id));
     }
 
@@ -302,7 +302,7 @@ public class JMElasticsearchIndex {
      * @return the action future
      */
     public ActionFuture<IndexResponse> sendDataAsync(
-            Map<String, Object> source, String index, String type) {
+            Map<String, ?> source, String index, String type) {
         return indexQueryAsync(buildIndexRequest(source, index, type, null));
     }
 

@@ -331,7 +331,7 @@ public class JMElasticsearchClient extends PreBuiltTransportClient {
      * @param type  the type
      * @return the mappings
      */
-    public Optional<Map<String, Object>> getMappings(String index, String
+    public Optional<Map<String, ?>> getMappings(String index, String
             type) {
         try {
             return Optional
