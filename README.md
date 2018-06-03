@@ -1,4 +1,4 @@
-JMLab Utility Libraries For Elasticsearch 5
+JMLab Utility Libraries For Elasticsearch 6
 ===========================================
 
 ## Useful Functions :
