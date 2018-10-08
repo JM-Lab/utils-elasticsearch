@@ -13,49 +13,49 @@ public class JMElasticsearchDelete {
 
 	private Client esClient;
 
-	/**
-	 * Instantiates a new Jm elasticsearch delete.
-	 *
-	 * @param elasticsearchClient the elasticsearch client
-	 */
-	public JMElasticsearchDelete(Client elasticsearchClient) {
+    /**
+     * Instantiates a new Jm elasticsearch delete.
+     *
+     * @param elasticsearchClient the elasticsearch client
+     */
+    public JMElasticsearchDelete(Client elasticsearchClient) {
 		this.esClient = elasticsearchClient;
 	}
 
-	/**
-	 * Delete query delete response.
-	 *
-	 * @param deleteRequestBuilder the delete request builder
-	 * @return the delete response
-	 */
-	public DeleteResponse
+    /**
+     * Delete query delete response.
+     *
+     * @param deleteRequestBuilder the delete request builder
+     * @return the delete response
+     */
+    public DeleteResponse
 	deleteQuery(DeleteRequestBuilder deleteRequestBuilder) {
 		return JMElasticsearchUtil.logRequestQueryAndReturn("deleteQuery",
 				deleteRequestBuilder, deleteRequestBuilder.execute());
 	}
 
-	/**
-	 * Delete indices delete index response.
-	 *
-	 * @param indices the indices
-	 * @return the delete index response
-	 */
-	public DeleteIndexResponse deleteIndices(String... indices) {
+    /**
+     * Delete indices delete index response.
+     *
+     * @param indices the indices
+     * @return the delete index response
+     */
+    public DeleteIndexResponse deleteIndices(String... indices) {
 		DeleteIndexRequestBuilder requestBuilder =
 				esClient.admin().indices().prepareDelete(indices);
 		return JMElasticsearchUtil.logRequestQueryAndReturn("deleteIndices",
 				requestBuilder, requestBuilder.execute());
 	}
 
-	/**
-	 * Delete doc delete response.
-	 *
-	 * @param index the index
-	 * @param type  the type
-	 * @param id    the id
-	 * @return the delete response
-	 */
-	public DeleteResponse deleteDoc(String index, String type, String id) {
+    /**
+     * Delete doc delete response.
+     *
+     * @param index the index
+     * @param type  the type
+     * @param id    the id
+     * @return the delete response
+     */
+    public DeleteResponse deleteDoc(String index, String type, String id) {
 		return deleteQuery(esClient.prepareDelete(index, type, id));
 	}
 

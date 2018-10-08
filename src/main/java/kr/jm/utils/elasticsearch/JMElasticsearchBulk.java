@@ -37,7 +37,7 @@ class JMElasticsearchBulk {
                 @Override
                 public void onResponse(BulkResponse bulkResponse) {
                     if (bulkResponse.hasFailures()) {
-                        JMExceptionManager.logException(log,
+                        JMExceptionManager.handleException(log,
                                 new RuntimeException(
                                         "ElasticSearch Insert Bulk Error !!!"),
                                 "onResponse",
@@ -49,7 +49,7 @@ class JMElasticsearchBulk {
 
                 @Override
                 public void onFailure(Exception e) {
-                    JMExceptionManager.logException(log, e, "onFailure");
+                    JMExceptionManager.handleException(log, e, "onFailure");
                 }
             };
     private Listener bulkProcessorListener = new Listener() {
@@ -65,7 +65,7 @@ class JMElasticsearchBulk {
         @Override
         public void afterBulk(long executionId, BulkRequest bulkRequest,
                 Throwable failure) {
-            JMExceptionManager.logException(log, failure, "afterBulk",
+            JMExceptionManager.handleException(log, failure, "afterBulk",
                     executionId, bulkRequest.getDescription());
         }
 
