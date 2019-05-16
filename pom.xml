@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>kr.jmlab</groupId>
     <artifactId>jmlab-utils-elasticsearch</artifactId>
-    <version>0.${elasticsearch.version}</version>
+    <version>${elasticsearch.version}</version>
     <packaging>jar</packaging>
     <name>JMLab-Utils-Elasticsearch</name>
     <description>JMLab Utility Libraries For Elasticsearch Client</description>
@@ -35,21 +35,21 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <java.version>1.8</java.version>
-        <slf4j.version>1.7.25</slf4j.version>
-        <log4j.version>2.11.1</log4j.version>
+        <java.version>11</java.version>
+        <log4j.version>2.11.2</log4j.version>
+        <slf4j.version>1.7.26</slf4j.version>
         <junit.version>4.12</junit.version>
-        <lombok.version>1.18.4</lombok.version>
-        <jmlab-utils-java8.version>0.1.94</jmlab-utils-java8.version>
+        <lombok.version>1.18.8</lombok.version>
+        <jmlab-utils-java8.version>0.1.95</jmlab-utils-java8.version>
         <jackson-databind.version>2.9.7</jackson-databind.version>
-        <elasticsearch.version>6.4.2</elasticsearch.version>
+        <elasticsearch.version>6.7.2</elasticsearch.version>
     </properties>
 
     <build>
         <plugins>
             <plugin>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.7.0</version>
+                <version>3.8.1</version>
                 <configuration>
                     <source>${java.version}</source>
                     <target>${java.version}</target>
@@ -71,8 +71,9 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
-                <version>2.9.1</version>
+                <version>3.1.0</version>
                 <configuration>
+                    <source>${java.version}</source>
                     <javadocExecutable>${java.home}/bin/javadoc
                     </javadocExecutable>
                 </configuration>
@@ -88,7 +89,6 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-gpg-plugin</artifactId>
-                <version>1.6</version>
                 <executions>
                     <execution>
                         <id>sign-artifacts</id>
@@ -102,7 +102,7 @@
             <plugin>
                 <groupId>org.sonatype.plugins</groupId>
                 <artifactId>nexus-staging-maven-plugin</artifactId>
-                <version>1.6.7</version>
+                <version>1.6.8</version>
                 <extensions>true</extensions>
                 <configuration>
                     <serverId>ossrh</serverId>
@@ -130,13 +130,9 @@
         </dependency>
         <dependency>
             <groupId>org.apache.logging.log4j</groupId>
-            <artifactId>log4j-core</artifactId>
+            <artifactId>log4j-slf4j-impl</artifactId>
             <version>${log4j.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-api</artifactId>
-            <version>${slf4j.version}</version>
+            <scope>runtime</scope>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>

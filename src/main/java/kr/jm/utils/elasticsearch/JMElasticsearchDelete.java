@@ -1,9 +1,9 @@
 package kr.jm.utils.elasticsearch;
 
 import org.elasticsearch.action.admin.indices.delete.DeleteIndexRequestBuilder;
-import org.elasticsearch.action.admin.indices.delete.DeleteIndexResponse;
 import org.elasticsearch.action.delete.DeleteRequestBuilder;
 import org.elasticsearch.action.delete.DeleteResponse;
+import org.elasticsearch.action.support.master.AcknowledgedResponse;
 import org.elasticsearch.client.Client;
 
 /**
@@ -40,7 +40,7 @@ public class JMElasticsearchDelete {
      * @param indices the indices
      * @return the delete index response
      */
-    public DeleteIndexResponse deleteIndices(String... indices) {
+    public AcknowledgedResponse deleteIndices(String... indices) {
 		DeleteIndexRequestBuilder requestBuilder =
 				esClient.admin().indices().prepareDelete(indices);
 		return JMElasticsearchUtil.logRequestQueryAndReturn("deleteIndices",

@@ -6,6 +6,7 @@ import kr.jm.utils.helper.JMThread;
 import lombok.extern.slf4j.Slf4j;
 import org.elasticsearch.action.admin.cluster.node.info.NodeInfo;
 import org.elasticsearch.client.ClusterAdminClient;
+import org.elasticsearch.common.logging.LogConfigurator;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.settings.Settings.Builder;
 import org.elasticsearch.index.reindex.ReindexPlugin;
@@ -46,7 +47,7 @@ public class JMEmbeddedElasticsearch extends Node {
      */
     public JMEmbeddedElasticsearch(Settings settings) {
         super(InternalSettingsPreparer.prepareEnvironment(settings, null),
-                PRE_INSTALLED_PLUGINS);
+                PRE_INSTALLED_PLUGINS, true);
     }
 
     /**
@@ -98,6 +99,11 @@ public class JMEmbeddedElasticsearch extends Node {
             return JMExceptionManager.handleExceptionAndThrowRuntimeEx(log, e,
                     "start");
         }
+    }
+
+    @Override
+    protected void registerDerivedNodeNameWithLogger(String nodeName) {
+        LogConfigurator.setNodeName(nodeName);
     }
 
     /**

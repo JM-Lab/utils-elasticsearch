@@ -31,7 +31,7 @@ public class JMElasticsearchUtil {
      * @param <T>              the type parameter
      * @param method           the method
      * @param requestBuilder   the request builder
-     * @param responseFunction the response function
+     * @param responseFunction the response custom
      * @return the t
      */
     public static <R extends ActionRequestBuilder, T> T logRequestQueryAndReturn(
@@ -47,7 +47,7 @@ public class JMElasticsearchUtil {
      * @param <T>              the type parameter
      * @param method           the method
      * @param requestBuilder   the request builder
-     * @param responseFunction the response function
+     * @param responseFunction the response custom
      * @param timeoutMillis    the timeout millis
      * @return the t
      */
