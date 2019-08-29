@@ -42,7 +42,7 @@
         <lombok.version>1.18.8</lombok.version>
         <jmlab-utils-java8.version>0.1.95</jmlab-utils-java8.version>
         <jackson-databind.version>2.9.7</jackson-databind.version>
-        <elasticsearch.version>6.7.2</elasticsearch.version>
+        <elasticsearch.version>6.8.2</elasticsearch.version>
     </properties>
 
     <build>
@@ -89,6 +89,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-gpg-plugin</artifactId>
+                <version>1.6</version>
                 <executions>
                     <execution>
                         <id>sign-artifacts</id>
