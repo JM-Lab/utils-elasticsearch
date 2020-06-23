@@ -7,6 +7,7 @@ import org.elasticsearch.action.index.IndexResponse;
 import org.elasticsearch.action.update.UpdateRequestBuilder;
 import org.elasticsearch.action.update.UpdateResponse;
 import org.elasticsearch.client.Client;
+import org.elasticsearch.common.xcontent.XContentType;
 
 import java.util.Map;
 
@@ -15,7 +16,7 @@ import java.util.Map;
  */
 public class JMElasticsearchIndex {
 
-    private Client jmESClient;
+    private final Client jmESClient;
 
     /**
      * Instantiates a new Jm elasticsearch index.
@@ -33,8 +34,8 @@ public class JMElasticsearchIndex {
      * @return the index response
      */
     public IndexResponse indexQuery(IndexRequestBuilder indexRequestBuilder) {
-        return JMElasticsearchUtil.logRequestQueryAndReturn("indexQuery",
-                indexRequestBuilder, indexRequestBuilder.execute());
+        return JMElasticsearchUtil
+                .logRequestQueryAndReturn("indexQuery", indexRequestBuilder, indexRequestBuilder.execute());
     }
 
     /**
@@ -43,40 +44,29 @@ public class JMElasticsearchIndex {
      * @param indexRequestBuilder the index request builder
      * @return the action future
      */
-    public ActionFuture<IndexResponse> indexQueryAsync(
-            IndexRequestBuilder indexRequestBuilder) {
-        return JMElasticsearchUtil.logRequestQuery("indexQueryAsync",
-                indexRequestBuilder
-        ).execute();
+    public ActionFuture<IndexResponse> indexQueryAsync(IndexRequestBuilder indexRequestBuilder) {
+        return JMElasticsearchUtil.logRequestQuery("indexQueryAsync", indexRequestBuilder).execute();
     }
 
-    private IndexRequestBuilder buildIndexRequest(String jsonSource,
-            String index, String type, String id) {
-        return buildIndexRequest(
-                JMElasticsearchUtil.buildSourceByJsonMapper(jsonSource), index,
-                type, id);
+    private IndexRequestBuilder buildIndexRequest(String index, String type, String id, String jsonSource) {
+        return buildIndexRequest(index, type, id, JMElasticsearchUtil.buildSourceByJsonMapper(jsonSource));
     }
 
-    private IndexRequestBuilder buildIndexRequest(Map<String, ?> source,
-            String index, String type, String id) {
+    private IndexRequestBuilder buildIndexRequest(String index, String type, String id, Map<String, Object> source) {
         return getPrepareIndex(index, type, id).setSource(source);
     }
 
-    private IndexRequestBuilder getPrepareIndex(String index, String type,
-            String id) {
-        return id == null ? jmESClient.prepareIndex(index, type)
-                : jmESClient.prepareIndex(index, type, id);
+    private IndexRequestBuilder getPrepareIndex(String index, String type, String id) {
+        return id == null ? jmESClient.prepareIndex(index, type) : jmESClient.prepareIndex(index, type, id);
+    }
+
+    private UpdateRequestBuilder buildPrepareUpsert(String index, String type, String id, String jsonString) {
+        return jmESClient.prepareUpdate(index, type, id).setDoc(jsonString, XContentType.JSON)
+                .setUpsert(new IndexRequest(index, type, id).source(jsonString, XContentType.JSON));
     }
 
     private UpdateRequestBuilder buildPrepareUpsert(String index, String type,
-            String id, String jsonString) {
-        return jmESClient.prepareUpdate(index, type, id).setDoc(jsonString)
-                .setUpsert(
-                        new IndexRequest(index, type, id).source(jsonString));
-    }
-
-    private UpdateRequestBuilder buildPrepareUpsert(String index, String type,
-            String id, Map<String, ?> source) {
+            String id, Map<String, Object> source) {
         return jmESClient.prepareUpdate(index, type, id).setDoc(source)
                 .setUpsert(new IndexRequest(index, type, id).source(source));
     }
@@ -87,8 +77,7 @@ public class JMElasticsearchIndex {
      * @param updateRequestBuilder the update request builder
      * @return the update response
      */
-    public UpdateResponse
-    upsertQuery(UpdateRequestBuilder updateRequestBuilder) {
+    public UpdateResponse upsertQuery(UpdateRequestBuilder updateRequestBuilder) {
         return JMElasticsearchUtil.logRequestQueryAndReturn("upsertQuery",
                 updateRequestBuilder, updateRequestBuilder.execute());
     }
@@ -99,8 +88,7 @@ public class JMElasticsearchIndex {
      * @param updateRequestBuilder the update request builder
      * @return the action future
      */
-    public ActionFuture<UpdateResponse>
-    upsertQueryAsync(UpdateRequestBuilder updateRequestBuilder) {
+    public ActionFuture<UpdateResponse> upsertQueryAsync(UpdateRequestBuilder updateRequestBuilder) {
         return JMElasticsearchUtil.logRequestQuery("upsertQueryAsync",
                 updateRequestBuilder
         ).execute();
@@ -109,260 +97,233 @@ public class JMElasticsearchIndex {
     /**
      * Upsert data update response.
      *
-     * @param source the source
      * @param index  the index
      * @param type   the type
      * @param id     the id
+     * @param source the source
      * @return the update response
      */
-    public UpdateResponse upsertData(Map<String, ?> source, String index,
-            String type, String id) {
+    public UpdateResponse upsertData(String index, String type, String id, Map<String, Object> source) {
         return upsertQuery(buildPrepareUpsert(index, type, id, source));
     }
 
     /**
      * Upsert data async action future.
      *
-     * @param source the source
      * @param index  the index
      * @param type   the type
      * @param id     the id
+     * @param source the source
      * @return the action future
      */
-    public ActionFuture<UpdateResponse> upsertDataAsync(
-            Map<String, ?> source, String index, String type, String id) {
+    public ActionFuture<UpdateResponse> upsertDataAsync(String index, String type, String id, Map<String, Object> source) {
         return upsertQueryAsync(buildPrepareUpsert(index, type, id, source));
     }
 
     /**
      * Upsert data update response.
      *
-     * @param jsonSource the json source
      * @param index      the index
      * @param type       the type
      * @param id         the id
+     * @param jsonSource the json source
      * @return the update response
      */
-    public UpdateResponse upsertData(String jsonSource, String index,
-            String type, String id) {
+    public UpdateResponse upsertData(String index, String type, String id, String jsonSource) {
         return upsertQuery(buildPrepareUpsert(index, type, id, jsonSource));
     }
 
     /**
      * Upsert data async action future.
      *
-     * @param jsonSource the json source
      * @param index      the index
      * @param type       the type
      * @param id         the id
+     * @param jsonSource the json source
      * @return the action future
      */
-    public ActionFuture<UpdateResponse> upsertDataAsync(
-            String jsonSource, String index, String type, String id) {
-        return upsertQueryAsync(
-                buildPrepareUpsert(index, type, id, jsonSource));
+    public ActionFuture<UpdateResponse> upsertDataAsync(String index, String type, String id, String jsonSource) {
+        return upsertQueryAsync(buildPrepareUpsert(index, type, id, jsonSource));
     }
 
     /**
      * Upsert data with object mapper update response.
      *
-     * @param sourceObject the source object
      * @param index        the index
      * @param type         the type
      * @param id           the id
+     * @param sourceObject the source object
      * @return the update response
      */
-    public UpdateResponse upsertDataWithObjectMapper(Object sourceObject,
-            String index, String type, String id) {
-        return upsertData(
-                JMElasticsearchUtil.buildSourceByJsonMapper(sourceObject),
-                index, type, id);
+    public UpdateResponse upsertDataWithObjectMapper(String index, String type, String id, Object sourceObject) {
+        return upsertData(index, type, id, JMElasticsearchUtil.buildSourceByJsonMapper(sourceObject));
     }
 
     /**
      * Upsert data a sync with object mapper action future.
      *
-     * @param sourceObject the source object
      * @param index        the index
      * @param type         the type
      * @param id           the id
+     * @param sourceObject the source object
      * @return the action future
      */
-    public ActionFuture<UpdateResponse>
-    upsertDataASyncWithObjectMapper(Object sourceObject, String index,
-            String type, String id) {
-        return upsertDataAsync(
-                JMElasticsearchUtil.buildSourceByJsonMapper(sourceObject),
-                index, type, id);
+    public ActionFuture<UpdateResponse> upsertDataASyncWithObjectMapper(String index, String type, String id,
+            Object sourceObject) {
+        return upsertDataAsync(index, type, id, JMElasticsearchUtil.buildSourceByJsonMapper(sourceObject));
     }
 
     /**
      * Send data index response.
      *
-     * @param source the source
      * @param index  the index
      * @param type   the type
      * @param id     the id
+     * @param source the source
      * @return the index response
      */
-    public IndexResponse sendData(Map<String, ?> source, String index,
-            String type, String id) {
-        return indexQuery(buildIndexRequest(source, index, type, id));
+    public IndexResponse sendData(String index, String type, String id, Map<String, Object> source) {
+        return indexQuery(buildIndexRequest(index, type, id, source));
     }
 
     /**
      * Send data string.
      *
-     * @param source the source
      * @param index  the index
      * @param type   the type
+     * @param source the source
      * @return the string
      */
-    public String sendData(Map<String, ?> source, String index,
-            String type) {
-        return sendData(source, index, type, null).getId();
+    public String sendData(String index, String type, Map<String, Object> source) {
+        return sendData(index, type, null, source).getId();
     }
 
     /**
      * Send data index response.
      *
-     * @param jsonSource the json source
      * @param index      the index
      * @param type       the type
      * @param id         the id
+     * @param jsonSource the json source
      * @return the index response
      */
-    public IndexResponse sendData(String jsonSource, String index, String type,
-            String id) {
-        return indexQuery(buildIndexRequest(jsonSource, index, type, id));
+    public IndexResponse sendData(String index, String type, String id, String jsonSource) {
+        return indexQuery(buildIndexRequest(index, type, id, jsonSource));
     }
 
     /**
      * Send data string.
      *
-     * @param jsonSource the json source
      * @param index      the index
      * @param type       the type
+     * @param jsonSource the json source
      * @return the string
      */
-    public String sendData(String jsonSource, String index, String type) {
-        return sendData(jsonSource, index, type, null).getId();
+    public String sendData(String index, String type, String jsonSource) {
+        return sendData(index, type, null, jsonSource).getId();
     }
 
     /**
      * Send data with object mapper index response.
      *
-     * @param sourceObject the source object
      * @param index        the index
      * @param type         the type
      * @param id           the id
+     * @param sourceObject the source object
      * @return the index response
      */
-    public IndexResponse sendDataWithObjectMapper(Object sourceObject,
-            String index, String type, String id) {
-        return sendData(
-                JMElasticsearchUtil.buildSourceByJsonMapper(sourceObject),
-                index, type, id);
+    public IndexResponse sendDataWithObjectMapper(String index, String type, String id, Object sourceObject) {
+        return sendData(index, type, id, JMElasticsearchUtil.buildSourceByJsonMapper(sourceObject));
     }
 
     /**
      * Send data with object mapper string.
      *
-     * @param sourceObject the source object
      * @param index        the index
      * @param type         the type
+     * @param sourceObject the source object
      * @return the string
      */
-    public String sendDataWithObjectMapper(Object sourceObject, String index,
-            String type) {
-        return sendDataWithObjectMapper(sourceObject, index, type, null)
-                .getId();
+    public String sendDataWithObjectMapper(String index, String type, Object sourceObject) {
+        return sendDataWithObjectMapper(index, type, null, sourceObject).getId();
     }
 
     /**
      * Send data async action future.
      *
-     * @param source the source
      * @param index  the index
      * @param type   the type
      * @param id     the id
+     * @param source the source
      * @return the action future
      */
-    public ActionFuture<IndexResponse> sendDataAsync(
-            Map<String, ?> source, String index, String type, String id) {
-        return indexQueryAsync(buildIndexRequest(source, index, type, id));
+    public ActionFuture<IndexResponse> sendDataAsync(String index, String type, String id, Map<String, Object> source) {
+        return indexQueryAsync(buildIndexRequest(index, type, id, source));
     }
 
     /**
      * Send data async action future.
      *
-     * @param source the source
      * @param index  the index
      * @param type   the type
+     * @param source the source
      * @return the action future
      */
-    public ActionFuture<IndexResponse> sendDataAsync(
-            Map<String, ?> source, String index, String type) {
-        return indexQueryAsync(buildIndexRequest(source, index, type, null));
+    public ActionFuture<IndexResponse> sendDataAsync(String index, String type, Map<String, Object> source) {
+        return indexQueryAsync(buildIndexRequest(index, type, null, source));
     }
 
     /**
      * Send data async action future.
      *
-     * @param jsonSource the json source
      * @param index      the index
      * @param type       the type
      * @param id         the id
+     * @param jsonSource the json source
      * @return the action future
      */
-    public ActionFuture<IndexResponse> sendDataAsync(
-            String jsonSource, String index, String type, String id) {
-        return indexQueryAsync(buildIndexRequest(jsonSource, index, type, id));
+    public ActionFuture<IndexResponse> sendDataAsync(String index, String type, String id, String jsonSource) {
+        return indexQueryAsync(buildIndexRequest(index, type, id, jsonSource));
     }
 
     /**
      * Send data async action future.
      *
-     * @param jsonSource the json source
      * @param index      the index
      * @param type       the type
+     * @param jsonSource the json source
      * @return the action future
      */
-    public ActionFuture<IndexResponse>
-    sendDataAsync(String jsonSource, String index, String type) {
-        return indexQueryAsync(
-                buildIndexRequest(jsonSource, index, type, null));
+    public ActionFuture<IndexResponse> sendDataAsync(String index, String type, String jsonSource) {
+        return indexQueryAsync(buildIndexRequest(index, type, null, jsonSource));
     }
 
     /**
      * Send data async with object mapper action future.
      *
-     * @param sourceObject the source object
      * @param index        the index
      * @param type         the type
      * @param id           the id
+     * @param sourceObject the source object
      * @return the action future
      */
-    public ActionFuture<IndexResponse> sendDataAsyncWithObjectMapper(
-            Object sourceObject, String index, String type, String id) {
-        return indexQueryAsync(buildIndexRequest(
-                JMElasticsearchUtil.buildSourceByJsonMapper(sourceObject),
-                index, type, id));
+    public ActionFuture<IndexResponse> sendDataAsyncWithObjectMapper(String index, String type, String id,
+            Object sourceObject) {
+        return indexQueryAsync(
+                buildIndexRequest(index, type, id, JMElasticsearchUtil.buildSourceByJsonMapper(sourceObject)));
     }
 
     /**
      * Send data async with object mapper action future.
      *
-     * @param sourceObject the source object
      * @param index        the index
      * @param type         the type
+     * @param sourceObject the source object
      * @return the action future
      */
-    public ActionFuture<IndexResponse> sendDataAsyncWithObjectMapper(
-            Object sourceObject, String index, String type) {
-        return indexQueryAsync(buildIndexRequest(
-                JMElasticsearchUtil.buildSourceByJsonMapper(sourceObject),
-                index, type, null));
+    public ActionFuture<IndexResponse> sendDataAsyncWithObjectMapper(String index, String type, Object sourceObject) {
+        return indexQueryAsync(
+                buildIndexRequest(index, type, null, JMElasticsearchUtil.buildSourceByJsonMapper(sourceObject)));
     }
 
 }

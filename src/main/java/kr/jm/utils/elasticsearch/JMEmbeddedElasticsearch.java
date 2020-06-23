@@ -6,9 +6,9 @@ import kr.jm.utils.helper.JMThread;
 import lombok.extern.slf4j.Slf4j;
 import org.elasticsearch.action.admin.cluster.node.info.NodeInfo;
 import org.elasticsearch.client.ClusterAdminClient;
-import org.elasticsearch.common.logging.LogConfigurator;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.settings.Settings.Builder;
+import org.elasticsearch.env.Environment;
 import org.elasticsearch.index.reindex.ReindexPlugin;
 import org.elasticsearch.node.InternalSettingsPreparer;
 import org.elasticsearch.node.Node;
@@ -18,20 +18,16 @@ import org.elasticsearch.plugins.Plugin;
 import org.elasticsearch.script.mustache.MustachePlugin;
 import org.elasticsearch.transport.Netty4Plugin;
 
-import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
+import java.util.List;
 
 /**
  * The type Jm embedded elasticsearch.
  */
 @Slf4j
 public class JMEmbeddedElasticsearch extends Node {
-    private static final Collection<Class<? extends Plugin>>
-            PRE_INSTALLED_PLUGINS =
-            Collections.unmodifiableList(
-                    Arrays.asList(Netty4Plugin.class, ReindexPlugin.class,
-                            PercolatorPlugin.class, MustachePlugin.class));
+    private static final Collection<Class<? extends Plugin>> PRE_INSTALLED_PLUGINS =
+            List.of(Netty4Plugin.class, ReindexPlugin.class, PercolatorPlugin.class, MustachePlugin.class);
 
     /**
      * Instantiates a new Jm embedded elasticsearch.
@@ -46,7 +42,7 @@ public class JMEmbeddedElasticsearch extends Node {
      * @param settings the settings
      */
     public JMEmbeddedElasticsearch(Settings settings) {
-        super(InternalSettingsPreparer.prepareEnvironment(settings, null),
+        super(new Environment(InternalSettingsPreparer.prepareSettings(settings), null),
                 PRE_INSTALLED_PLUGINS, true);
     }
 
@@ -99,11 +95,6 @@ public class JMEmbeddedElasticsearch extends Node {
             return JMExceptionManager.handleExceptionAndThrowRuntimeEx(log, e,
                     "start");
         }
-    }
-
-    @Override
-    protected void registerDerivedNodeNameWithLogger(String nodeName) {
-        LogConfigurator.setNodeName(nodeName);
     }
 
     /**

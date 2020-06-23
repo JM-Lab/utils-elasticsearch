@@ -66,8 +66,7 @@ public class JMElasticsearchClientTest {
     @After
     public void tearDown() throws Exception {
         JMOptional.getOptional(jmElasticsearchClient.getAllIndices())
-                .ifPresent(indices -> jmElasticsearchClient.deleteIndices(
-                        indices.toArray(new String[indices.size()])));
+                .ifPresent(indices -> jmElasticsearchClient.deleteIndices(indices.toArray(String[]::new)));
         while (jmElasticsearchClient.getAllIndices().size() > 0)
             JMThread.sleep(1000);
         jmElasticsearchClient.close();
@@ -87,8 +86,7 @@ public class JMElasticsearchClientTest {
 
         if (!jmElasticsearchClient.isExists(index))
             assertTrue(jmElasticsearchClient.create(index));
-        System.out.println(jmElasticsearchClient
-                .sendDataWithObjectMapper(sourceObject, index, type));
+        System.out.println(jmElasticsearchClient.sendDataWithObjectMapper(index, type, sourceObject));
         JMThread.sleep(1000);
         assertEquals("[client-test]",
                 jmElasticsearchClient.getAllIndices().toString());
@@ -108,12 +106,11 @@ public class JMElasticsearchClientTest {
 
         if (!jmElasticsearchClient.isExists(index))
             assertTrue(jmElasticsearchClient.create(index));
-        jmElasticsearchClient.sendData(sourceObject, index, type);
+        jmElasticsearchClient.sendData(index, type, sourceObject);
         JMThread.sleep(1000);
         System.out.println(jmElasticsearchClient.count(index));
         System.out.println(jmElasticsearchClient.searchAll(index));
-        String id = jmElasticsearchClient.sendDataWithObjectMapper(sourceObject,
-                index, type);
+        String id = jmElasticsearchClient.sendDataWithObjectMapper(index, type, sourceObject);
         System.out.println(id);
         JMThread.sleep(1000);
         int length = jmElasticsearchClient.searchAll(index).getHits()
@@ -128,17 +125,14 @@ public class JMElasticsearchClientTest {
                 jmElasticsearchClient.searchAll(indices, types).getHits()
                         .getHits().length,
                 length);
-        jmElasticsearchClient
-                .sendDataWithObjectMapper(sourceObject, index, type);
+        jmElasticsearchClient.sendDataWithObjectMapper(index, type, sourceObject);
         System.out.println(jmElasticsearchClient.count(index));
-        jmElasticsearchClient
-                .sendDataWithObjectMapper(sourceObject, index, type, id);
+        jmElasticsearchClient.sendDataWithObjectMapper(index, type, id, sourceObject);
         JMThread.sleep(1000);
         System.out.println(jmElasticsearchClient.count(index));
         System.out.println(jmElasticsearchClient.count(indices, types));
         assertEquals(3, jmElasticsearchClient.count(indices, types));
-        assertEquals(jmElasticsearchClient.count(index),
-                jmElasticsearchClient.count(indices, types));
+        assertEquals(jmElasticsearchClient.count(index), jmElasticsearchClient.count(indices, types));
     }
 
     /**
@@ -154,10 +148,9 @@ public class JMElasticsearchClientTest {
 
         if (!jmElasticsearchClient.isExists(index))
             assertTrue(jmElasticsearchClient.create(index));
-        jmElasticsearchClient.sendData(sourceObject, index, type);
+        jmElasticsearchClient.sendData(index, type, sourceObject);
         JMThread.sleep(1000);
-        ImmutableOpenMap<String, ImmutableOpenMap<String, MappingMetaData>>
-                mappings =
+        ImmutableOpenMap<String, ImmutableOpenMap<String, MappingMetaData>> mappings =
                 jmElasticsearchClient.getMappingsResponse(indices);
         System.out.println(mappings);
         assertTrue(mappings.containsKey(index));
@@ -197,32 +190,28 @@ public class JMElasticsearchClientTest {
 
         if (!jmElasticsearchClient.isExists(index))
             assertTrue(jmElasticsearchClient.create(index));
-        jmElasticsearchClient.sendData(sourceObject, index, type);
-        jmElasticsearchClient.sendData(sourceObject2, index, type);
-        jmElasticsearchClient.sendData(sourceObject3, index, type);
+        jmElasticsearchClient.sendData(index, type, sourceObject);
+        jmElasticsearchClient.sendData(index, type, sourceObject2);
+        jmElasticsearchClient.sendData(index, type, sourceObject3);
         // 인덱싱할 시간 필요
         JMThread.sleep(3000);
 
-        SearchResponse searchResponse1 =
-                jmElasticsearchClient.searchAll(indices, types);
+        SearchResponse searchResponse1 = jmElasticsearchClient.searchAll(indices, types);
         System.out.println(searchResponse1);
 
-        AggregationBuilder[] sumAggregationBuilders =
-                new AbstractAggregationBuilder[sumFields.length];
+        AggregationBuilder[] sumAggregationBuilders = new AbstractAggregationBuilder[sumFields.length];
         for (int i = 0; i < sumFields.length; i++)
-            sumAggregationBuilders[i] =
-                    AggregationBuilders.stats(sumFields[i]).field(sumFields[i]);
-        searchResponse1 = jmElasticsearchClient.searchAll(indices, types,
-                sumAggregationBuilders);
+            sumAggregationBuilders[i] = AggregationBuilders.stats(sumFields[i]).field(sumFields[i]);
+        searchResponse1 = jmElasticsearchClient.searchAll(indices, types, sumAggregationBuilders);
         System.out.println(searchResponse1);
         assertTrue(searchResponse1.toString().contains("\"count\":3"));
         assertTrue(searchResponse1.toString().contains("\"sum\":90.0"));
         QueryBuilder dataRangeFilter = QueryBuilders.rangeQuery(timestamp)
                 .gte("2015-05-12T00:59:00Z").lt("2015-05-12T01:00:00Z");
         System.out.println(jmElasticsearchClient.searchAll(indices));
-        searchResponse1 = jmElasticsearchClient.searchAll(indices, types,
-                dataRangeFilter);
-        assertTrue(searchResponse1.toString().contains("\"total\":2"));
+        searchResponse1 = jmElasticsearchClient.searchAll(indices, types, dataRangeFilter);
+        System.out.println(searchResponse1);
+        assertEquals(searchResponse1.getHits().getTotalHits().value, 2);
 
         searchResponse1 = jmElasticsearchClient.searchAll(indices, types,
                 dataRangeFilter, sumAggregationBuilders);
@@ -266,11 +255,10 @@ public class JMElasticsearchClientTest {
 
         if (!jmElasticsearchClient.isExists(index))
             assertTrue(jmElasticsearchClient.create(index));
-        jmElasticsearchClient.sendData(sourceObject, index, type);
+        jmElasticsearchClient.sendData(index, type, sourceObject);
 
         JMOptional.getOptional(jmElasticsearchClient.getAllIndices())
-                .ifPresent(indices -> jmElasticsearchClient.deleteIndices(
-                        indices.toArray(new String[indices.size()])));
+                .ifPresent(indices -> jmElasticsearchClient.deleteIndices(indices.toArray(String[]::new)));
         JMThread.sleep(1000);
         allIndexList = jmElasticsearchClient.getAllIndices();
         System.out.println(allIndexList);
@@ -379,9 +367,9 @@ public class JMElasticsearchClientTest {
 
         if (!jmElasticsearchClient.isExists(index))
             assertTrue(jmElasticsearchClient.create(index));
-        jmElasticsearchClient.sendData(sourceObject, index, type);
-        jmElasticsearchClient.sendData(sourceObject2, index, type);
-        jmElasticsearchClient.sendData(sourceObject3, index, type);
+        jmElasticsearchClient.sendData(index, type, sourceObject);
+        jmElasticsearchClient.sendData(index, type, sourceObject2);
+        jmElasticsearchClient.sendData(index, type, sourceObject3);
         // 인덱싱할 시간 필요
         JMThread.sleep(1000);
 
@@ -578,7 +566,7 @@ public class JMElasticsearchClientTest {
 
         if (!jmElasticsearchClient.isExists(index))
             assertTrue(jmElasticsearchClient.create(index));
-        jmElasticsearchClient.sendData(sourceObject, index, type, "1");
+        jmElasticsearchClient.sendData(index, type, "1", sourceObject);
         // 인덱싱할 시간 필요
         JMThread.sleep(1000);
         SearchResponse searchResponse =
@@ -590,7 +578,7 @@ public class JMElasticsearchClientTest {
         sourceObject = new HashMap<>();
         sourceObject.put(test400, 500);
         // 기존것에 다시 보내면 기존데이터를 새로운 것으로 변경 함
-        jmElasticsearchClient.sendData(sourceObject, index, type, "1");
+        jmElasticsearchClient.sendData(index, type, "1", sourceObject);
         JMThread.sleep(1000);
         searchResponse = jmElasticsearchClient.searchAll(index, type);
         System.out.println(searchResponse);
@@ -601,7 +589,7 @@ public class JMElasticsearchClientTest {
         sourceObject = new HashMap<>();
         sourceObject.put("new", "newData");
         // upsertData 를 하면 기존 데이터를 그대로 둔 상태에서 새로 추가된 것만 넣거나 함
-        jmElasticsearchClient.upsertData(sourceObject, index, type, "1");
+        jmElasticsearchClient.upsertData(index, type, "1", sourceObject);
         JMThread.sleep(1000);
         searchResponse = jmElasticsearchClient.searchAll(index, type);
         System.out.println(searchResponse);

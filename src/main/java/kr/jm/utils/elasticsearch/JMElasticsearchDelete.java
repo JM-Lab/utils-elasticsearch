@@ -11,7 +11,7 @@ import org.elasticsearch.client.Client;
  */
 public class JMElasticsearchDelete {
 
-	private Client esClient;
+	private final Client esClient;
 
     /**
      * Instantiates a new Jm elasticsearch delete.
