@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>kr.jmlab</groupId>
     <artifactId>jmlab-utils-elasticsearch</artifactId>
-    <version>${elasticsearch.version}</version>
+    <version>7.7.1</version>
     <packaging>jar</packaging>
     <name>JMLab-Utils-Elasticsearch</name>
     <description>JMLab Utility Libraries For Elasticsearch Client</description>
@@ -41,7 +41,7 @@
         <junit.version>4.12</junit.version>
         <lombok.version>1.18.12</lombok.version>
         <jmlab-utils-java9.version>0.1.6</jmlab-utils-java9.version>
-        <elasticsearch.version>7.7.1</elasticsearch.version>
+        <elasticsearch.version>${project.version}</elasticsearch.version>
     </properties>
 
     <build>

@@ -208,23 +208,21 @@ public class JMElasticsearchClient extends PreBuiltTransportClient {
      * Gets all id list.
      *
      * @param index the index
-     * @param type  the type
      * @return the all id list
      */
-    public List<String> getAllIdList(String index, String type) {
-        return extractIdList(searchAll(index, type));
+    public List<String> getAllIdList(String index) {
+        return extractIdList(searchAll(index));
     }
 
     /**
      * Extract id list list.
      *
      * @param index              the index
-     * @param type               the type
      * @param filterQueryBuilder the filter query builder
      * @return the list
      */
-    public List<String> extractIdList(String index, String type, QueryBuilder filterQueryBuilder) {
-        return extractIdList(searchAllWithTargetCount(index, type, filterQueryBuilder));
+    public List<String> extractIdList(String index, QueryBuilder filterQueryBuilder) {
+        return extractIdList(searchAllWithTargetCount(index, filterQueryBuilder));
     }
 
     /**
@@ -285,8 +283,7 @@ public class JMElasticsearchClient extends PreBuiltTransportClient {
      * @param updateRequestBuilder the update request builder
      * @return the update response
      */
-    public UpdateResponse
-    updateQuery(UpdateRequestBuilder updateRequestBuilder) {
+    public UpdateResponse updateQuery(UpdateRequestBuilder updateRequestBuilder) {
         return JMElasticsearchUtil
                 .logRequestQueryAndReturn("updateQuery", updateRequestBuilder, updateRequestBuilder.execute());
     }
@@ -295,14 +292,13 @@ public class JMElasticsearchClient extends PreBuiltTransportClient {
      * Gets mappings.
      *
      * @param index the index
-     * @param type  the type
      * @return the mappings
      */
-    public Optional<Map<String, Object>> getMappings(String index, String type) {
+    public Optional<Map<String, Object>> getMappings(String index) {
         try {
-            return Optional.of(getMappingsResponse(index).get(index).get(type).getSourceAsMap());
+            return Optional.of(getMappingsResponse(index).get(index).get("_doc").getSourceAsMap());
         } catch (Exception e) {
-            return JMExceptionManager.handleExceptionAndReturnEmptyOptional(log, e, "getMappings", index, type);
+            return JMExceptionManager.handleExceptionAndReturnEmptyOptional(log, e, "getMappings", index);
         }
     }
 
