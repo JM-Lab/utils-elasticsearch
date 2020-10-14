@@ -78,8 +78,8 @@ public class JMElasticsearchIndex {
      * @return the update response
      */
     public UpdateResponse upsertQuery(UpdateRequestBuilder updateRequestBuilder) {
-        return JMElasticsearchUtil.logRequestQueryAndReturn("upsertQuery",
-                updateRequestBuilder, updateRequestBuilder.execute());
+        return JMElasticsearchUtil
+                .logRequestQueryAndReturn("upsertQuery", updateRequestBuilder, updateRequestBuilder.execute());
     }
 
     /**

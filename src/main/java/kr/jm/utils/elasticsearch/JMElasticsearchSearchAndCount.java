@@ -1,6 +1,7 @@
 package kr.jm.utils.elasticsearch;
 
-import kr.jm.utils.datastructure.JMArrays;
+import kr.jm.utils.JMArrays;
+import kr.jm.utils.JMStream;
 import lombok.Getter;
 import lombok.Setter;
 import org.elasticsearch.action.search.SearchRequestBuilder;
@@ -12,12 +13,10 @@ import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.aggregations.AggregationBuilder;
 
+import java.util.Objects;
 import java.util.function.Consumer;
 
-import static java.util.Arrays.stream;
 import static kr.jm.utils.elasticsearch.JMElasticsearchUtil.logRequestQueryAndReturn;
-import static kr.jm.utils.helper.JMOptional.ifNotNull;
-import static kr.jm.utils.helper.JMPredicate.getIsNotNull;
 import static org.elasticsearch.common.unit.TimeValue.timeValueMillis;
 
 /**
@@ -78,8 +77,8 @@ public class JMElasticsearchSearchAndCount {
      */
     public SearchResponse searchWithTargetCount(boolean isSetExplain, String[] indices,
             QueryBuilder[] mustConditionQueryBuilders, QueryBuilder[] filterConditionQueryBuilders) {
-        return searchWithTargetCount(isSetExplain, indices, mustConditionQueryBuilders,
-                filterConditionQueryBuilders, null);
+        return searchWithTargetCount(isSetExplain, indices, mustConditionQueryBuilders, filterConditionQueryBuilders,
+                null);
     }
 
     /**
@@ -95,8 +94,9 @@ public class JMElasticsearchSearchAndCount {
     public SearchResponse searchWithTargetCount(boolean isSetExplain, String[] indices,
             QueryBuilder[] mustConditionQueryBuilders, QueryBuilder[] filterConditionQueryBuilders,
             AggregationBuilder[] aggregationBuilders) {
-        return searchWithTargetCount(getSearchRequestBuilder(isSetExplain, indices, mustConditionQueryBuilders,
-                filterConditionQueryBuilders, null), aggregationBuilders);
+        return searchWithTargetCount(
+                getSearchRequestBuilder(isSetExplain, indices, mustConditionQueryBuilders, filterConditionQueryBuilders,
+                        null), aggregationBuilders);
     }
 
 
@@ -157,8 +157,8 @@ public class JMElasticsearchSearchAndCount {
      */
     public SearchRequestBuilder getSearchRequestBuilder(SearchRequestBuilder searchRequestBuilder,
             AggregationBuilder[] aggregationBuilders) {
-        ifNotNull(aggregationBuilders,
-                array -> stream(array).filter(getIsNotNull()).forEach(searchRequestBuilder::addAggregation));
+        JMStream.buildStream(aggregationBuilders).filter(Objects::nonNull)
+                .forEach(searchRequestBuilder::addAggregation);
         return searchRequestBuilder;
     }
 
@@ -181,13 +181,16 @@ public class JMElasticsearchSearchAndCount {
             QueryBuilder[] mustConditionQueryBuilders, QueryBuilder[] filterConditionQueryBuilders,
             AggregationBuilder[] aggregationBuilders) {
         BoolQueryBuilder boolQueryBuilder = QueryBuilders.boolQuery();
-        ifNotNull(mustConditionQueryBuilders, array -> buildQueryBuilder(array, boolQueryBuilder::must));
-        ifNotNull(filterConditionQueryBuilders, array -> buildQueryBuilder(array, boolQueryBuilder::filter));
+        JMStream.buildStream(mustConditionQueryBuilders)
+                .forEach(queryBuilder -> buildQueryBuilder(queryBuilder, boolQueryBuilder::must));
+        JMStream.buildStream(filterConditionQueryBuilders)
+                .forEach(queryBuilder -> buildQueryBuilder(queryBuilder, boolQueryBuilder::filter));
         return getSearchRequestBuilder(isSetExplain, indices, boolQueryBuilder, aggregationBuilders);
     }
 
-    private void buildQueryBuilder(QueryBuilder[] array, Consumer<QueryBuilder> builderConsumer) {
-        stream(array).filter(getIsNotNull()).forEach(builderConsumer);
+    private void buildQueryBuilder(QueryBuilder queryBuilder, Consumer<QueryBuilder> builderConsumer) {
+        if (Objects.nonNull(queryBuilder))
+            builderConsumer.accept(queryBuilder);
     }
 
     /**
@@ -243,7 +246,7 @@ public class JMElasticsearchSearchAndCount {
         SearchRequestBuilder searchRequestBuilder = getSearchRequestBuilder(
                 esClient.prepareSearch(indices).setSearchType(SearchType.DFS_QUERY_THEN_FETCH).setSize(defaultHitsCount)
                         .setExplain(isSetExplain), aggregationBuilders);
-        ifNotNull(queryBuilder, searchRequestBuilder::setQuery);
+        buildQueryBuilder(queryBuilder, searchRequestBuilder::setQuery);
         return searchRequestBuilder;
     }
 
@@ -344,8 +347,7 @@ public class JMElasticsearchSearchAndCount {
      */
     public SearchResponse searchAll(String index, QueryBuilder filterQueryBuilder,
             AggregationBuilder[] aggregationBuilders) {
-        return searchAll(JMArrays.buildArray(index), filterQueryBuilder,
-                aggregationBuilders);
+        return searchAll(JMArrays.buildArray(index), filterQueryBuilder, aggregationBuilders);
     }
 
     /**
@@ -440,8 +442,8 @@ public class JMElasticsearchSearchAndCount {
      */
     public SearchResponse searchAll(boolean isSetExplain, String[] indices, QueryBuilder filterQueryBuilder,
             AggregationBuilder[] aggregationBuilders) {
-        return searchQuery(getSearchRequestBuilderWithMatchAll(isSetExplain, indices, filterQueryBuilder,
-                aggregationBuilders));
+        return searchQuery(
+                getSearchRequestBuilderWithMatchAll(isSetExplain, indices, filterQueryBuilder, aggregationBuilders));
     }
 
     /**

@@ -1,9 +1,9 @@
 package kr.jm.utils.elasticsearch;
 
+import kr.jm.utils.JMString;
 import kr.jm.utils.enums.OS;
-import kr.jm.utils.exception.JMExceptionManager;
+import kr.jm.utils.exception.JMException;
 import kr.jm.utils.helper.JMLog;
-import kr.jm.utils.helper.JMString;
 import lombok.Getter;
 import lombok.experimental.Delegate;
 import lombok.extern.slf4j.Slf4j;
@@ -142,7 +142,7 @@ public class JMElasticsearchClient extends PreBuiltTransportClient {
                         Integer.parseInt(separatedIpPort[1])));
             }
         } catch (Exception e) {
-            JMExceptionManager
+            JMException
                     .handleExceptionAndThrowRuntimeEx(log, e, "JMElasticsearchClient", elasticsearchConnect, settings);
         }
         JMLog.info(log, "initElasticsearchClient", elasticsearchConnect, settings);
@@ -298,7 +298,7 @@ public class JMElasticsearchClient extends PreBuiltTransportClient {
         try {
             return Optional.of(getMappingsResponse(index).get(index).get("_doc").getSourceAsMap());
         } catch (Exception e) {
-            return JMExceptionManager.handleExceptionAndReturnEmptyOptional(log, e, "getMappings", index);
+            return JMException.handleExceptionAndReturnEmptyOptional(log, e, "getMappings", index);
         }
     }
 

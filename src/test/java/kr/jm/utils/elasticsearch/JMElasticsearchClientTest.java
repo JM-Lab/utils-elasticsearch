@@ -1,10 +1,9 @@
 package kr.jm.utils.elasticsearch;
 
-import kr.jm.utils.datastructure.JMCollections;
-import kr.jm.utils.helper.JMOptional;
+import kr.jm.utils.JMCollections;
+import kr.jm.utils.JMOptional;
+import kr.jm.utils.JMThread;
 import kr.jm.utils.helper.JMPath;
-import kr.jm.utils.helper.JMPathOperation;
-import kr.jm.utils.helper.JMThread;
 import org.elasticsearch.action.bulk.BulkResponse;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.cluster.metadata.MappingMetadata;
@@ -71,7 +70,7 @@ public class JMElasticsearchClientTest {
             JMThread.sleep(1000);
         jmElasticsearchClient.close();
         jmEmbeddedElasticsearch.close();
-        JMPathOperation.deleteDirOnExist(JMPath.getPath("data"));
+        JMPath.getInstance().deleteDirOnExist(JMPath.getInstance().getPath("data"));
     }
 
     /**

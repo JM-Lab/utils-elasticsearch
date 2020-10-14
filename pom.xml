@@ -38,9 +38,9 @@
         <java.version>11</java.version>
         <log4j.version>2.13.3</log4j.version>
         <slf4j.version>1.7.30</slf4j.version>
-        <junit.version>4.12</junit.version>
-        <lombok.version>1.18.12</lombok.version>
-        <jmlab-utils-java9.version>0.1.6</jmlab-utils-java9.version>
+        <junit.version>4.13.1</junit.version>
+        <lombok.version>1.18.16</lombok.version>
+        <jmlab-utils-java11.version>0.1.0</jmlab-utils-java11.version>
         <elasticsearch.version>${project.version}</elasticsearch.version>
     </properties>
 
@@ -125,8 +125,8 @@
         </dependency>
         <dependency>
             <groupId>kr.jmlab</groupId>
-            <artifactId>jmlab-utils-java9</artifactId>
-            <version>${jmlab-utils-java9.version}</version>
+            <artifactId>jmlab-utils-java11</artifactId>
+            <version>${jmlab-utils-java11.version}</version>
         </dependency>
         <dependency>
             <groupId>de.dentrassi.elasticsearch</groupId>

@@ -11,7 +11,7 @@ import org.elasticsearch.client.Client;
  */
 public class JMElasticsearchDelete {
 
-	private final Client esClient;
+    private final Client esClient;
 
     /**
      * Instantiates a new Jm elasticsearch delete.
@@ -19,8 +19,8 @@ public class JMElasticsearchDelete {
      * @param elasticsearchClient the elasticsearch client
      */
     public JMElasticsearchDelete(Client elasticsearchClient) {
-		this.esClient = elasticsearchClient;
-	}
+        this.esClient = elasticsearchClient;
+    }
 
     /**
      * Delete query delete response.
@@ -29,23 +29,21 @@ public class JMElasticsearchDelete {
      * @return the delete response
      */
     public DeleteResponse
-	deleteQuery(DeleteRequestBuilder deleteRequestBuilder) {
-		return JMElasticsearchUtil.logRequestQueryAndReturn("deleteQuery",
-				deleteRequestBuilder, deleteRequestBuilder.execute());
-	}
+    deleteQuery(DeleteRequestBuilder deleteRequestBuilder) {
+        return JMElasticsearchUtil
+                .logRequestQueryAndReturn("deleteQuery", deleteRequestBuilder, deleteRequestBuilder.execute());
+    }
 
     /**
-     * Delete indices delete index response.
+     * Delete indices acknowledged response.
      *
      * @param indices the indices
-     * @return the delete index response
+     * @return the acknowledged response
      */
     public AcknowledgedResponse deleteIndices(String... indices) {
-		DeleteIndexRequestBuilder requestBuilder =
-				esClient.admin().indices().prepareDelete(indices);
-		return JMElasticsearchUtil.logRequestQueryAndReturn("deleteIndices",
-				requestBuilder, requestBuilder.execute());
-	}
+        DeleteIndexRequestBuilder requestBuilder = esClient.admin().indices().prepareDelete(indices);
+        return JMElasticsearchUtil.logRequestQueryAndReturn("deleteIndices", requestBuilder, requestBuilder.execute());
+    }
 
     /**
      * Delete doc delete response.
@@ -56,7 +54,7 @@ public class JMElasticsearchDelete {
      * @return the delete response
      */
     public DeleteResponse deleteDoc(String index, String type, String id) {
-		return deleteQuery(esClient.prepareDelete(index, type, id));
-	}
+        return deleteQuery(esClient.prepareDelete(index, type, id));
+    }
 
 }

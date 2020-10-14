@@ -1,8 +1,8 @@
 package kr.jm.utils.elasticsearch;
 
+import kr.jm.utils.JMThread;
 import kr.jm.utils.enums.OS;
-import kr.jm.utils.exception.JMExceptionManager;
-import kr.jm.utils.helper.JMThread;
+import kr.jm.utils.exception.JMException;
 import lombok.extern.slf4j.Slf4j;
 import org.elasticsearch.action.admin.cluster.node.info.NodeInfo;
 import org.elasticsearch.client.ClusterAdminClient;
@@ -42,8 +42,7 @@ public class JMEmbeddedElasticsearch extends Node {
      * @param settings the settings
      */
     public JMEmbeddedElasticsearch(Settings settings) {
-        super(new Environment(InternalSettingsPreparer.prepareSettings(settings), null),
-                PRE_INSTALLED_PLUGINS, true);
+        super(new Environment(InternalSettingsPreparer.prepareSettings(settings), null), PRE_INSTALLED_PLUGINS, true);
     }
 
     /**
@@ -53,8 +52,7 @@ public class JMEmbeddedElasticsearch extends Node {
      * @param networkHost the network host
      */
     public JMEmbeddedElasticsearch(String nodeName, String networkHost) {
-        this(getNodeConfig("JMEmbeddedElasticsearch", nodeName, networkHost,
-                OS.getUserWorkingDir(), true).build());
+        this(getNodeConfig("JMEmbeddedElasticsearch", nodeName, networkHost, OS.getUserWorkingDir(), true).build());
 
     }
 
@@ -68,8 +66,8 @@ public class JMEmbeddedElasticsearch extends Node {
      * @param nodeIngest  the node ingest
      * @return the node config
      */
-    public static Builder getNodeConfig(String clusterName, String nodeName,
-            String networkHost, String homePath, boolean nodeIngest) {
+    public static Builder getNodeConfig(String clusterName, String nodeName, String networkHost, String homePath,
+            boolean nodeIngest) {
         return Settings.builder()
                 // .put("path.metric", dataPath).put("http.port", httpRange)
                 // .put("transport.tcp.port", transportRange)
@@ -92,8 +90,7 @@ public class JMEmbeddedElasticsearch extends Node {
             JMThread.sleep(1000);
             return node;
         } catch (NodeValidationException e) {
-            return JMExceptionManager.handleExceptionAndThrowRuntimeEx(log, e,
-                    "start");
+            return JMException.handleExceptionAndThrowRuntimeEx(log, e, "start");
         }
     }
 
@@ -108,10 +105,8 @@ public class JMEmbeddedElasticsearch extends Node {
 
     private NodeInfo getCurrentNode() {
         ClusterAdminClient cluster = client().admin().cluster();
-        return cluster
-                .prepareNodesInfo(cluster.prepareState().get().getState()
-                        .getNodes().getLocalNodeId())
-                .get().getNodes().iterator().next();
+        return cluster.prepareNodesInfo(cluster.prepareState().get().getState().getNodes().getLocalNodeId()).get()
+                .getNodes().iterator().next();
     }
 
 }

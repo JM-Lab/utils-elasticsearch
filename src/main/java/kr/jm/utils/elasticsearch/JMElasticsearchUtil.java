@@ -3,7 +3,7 @@ package kr.jm.utils.elasticsearch;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import kr.jm.utils.exception.JMExceptionManager;
+import kr.jm.utils.exception.JMException;
 import kr.jm.utils.helper.JMLog;
 import lombok.extern.slf4j.Slf4j;
 import org.elasticsearch.action.ActionFuture;
@@ -32,11 +32,11 @@ public class JMElasticsearchUtil {
      * @param <T>              the type parameter
      * @param method           the method
      * @param requestBuilder   the request builder
-     * @param responseFunction the response custom
+     * @param responseFunction the response function
      * @return the t
      */
-    public static <R extends ActionRequestBuilder<? extends ActionRequest, ? extends ActionResponse>, T> T logRequestQueryAndReturn(String method, R requestBuilder,
-            ActionFuture<T> responseFunction) {
+    public static <R extends ActionRequestBuilder<? extends ActionRequest, ? extends ActionResponse>, T> T logRequestQueryAndReturn(
+            String method, R requestBuilder, ActionFuture<T> responseFunction) {
         return logRequestQueryAndReturn(method, requestBuilder, responseFunction, null);
     }
 
@@ -47,18 +47,18 @@ public class JMElasticsearchUtil {
      * @param <T>              the type parameter
      * @param method           the method
      * @param requestBuilder   the request builder
-     * @param responseFunction the response custom
+     * @param responseFunction the response function
      * @param timeoutMillis    the timeout millis
      * @return the t
      */
-    public static <R extends ActionRequestBuilder<? extends ActionRequest, ? extends ActionResponse>, T> T logRequestQueryAndReturn(String method, R requestBuilder,
-            ActionFuture<T> responseFunction, Long timeoutMillis) {
+    public static <R extends ActionRequestBuilder<? extends ActionRequest, ? extends ActionResponse>, T> T logRequestQueryAndReturn(
+            String method, R requestBuilder, ActionFuture<T> responseFunction, Long timeoutMillis) {
         try {
             logRequestQuery(method, requestBuilder, timeoutMillis);
             return timeoutMillis == null || timeoutMillis == 0 ? responseFunction.actionGet() : responseFunction
                     .actionGet(timeoutMillis);
         } catch (Exception e) {
-            return JMExceptionManager.handleExceptionAndThrowRuntimeEx(log, e, method, requestBuilder);
+            return JMException.handleExceptionAndThrowRuntimeEx(log, e, method, requestBuilder);
         }
     }
 
@@ -71,9 +71,8 @@ public class JMElasticsearchUtil {
      * @param params         the params
      * @return the r
      */
-    public static <R extends ActionRequestBuilder<? extends ActionRequest, ? extends ActionResponse>> R logRequestQuery(String method,
-            R requestBuilder,
-            Object... params) {
+    public static <R extends ActionRequestBuilder<? extends ActionRequest, ? extends ActionResponse>> R logRequestQuery(
+            String method, R requestBuilder, Object... params) {
         if (params == null)
             JMLog.debug(log, method, requestBuilder);
         else
@@ -91,7 +90,7 @@ public class JMElasticsearchUtil {
         try {
             return JsonMapper.convertValue(sourceObject, MAP_TYPE_REFERENCE);
         } catch (Exception e) {
-            return JMExceptionManager.handleExceptionAndThrowRuntimeEx(log, e, "buildSourceByJsonMapper", sourceObject);
+            return JMException.handleExceptionAndThrowRuntimeEx(log, e, "buildSourceByJsonMapper", sourceObject);
         }
     }
 
@@ -105,8 +104,7 @@ public class JMElasticsearchUtil {
         try {
             return JsonMapper.readValue(jsonObjectString, MAP_TYPE_REFERENCE);
         } catch (Exception e) {
-            return JMExceptionManager
-                    .handleExceptionAndThrowRuntimeEx(log, e, "buildSourceByJsonMapper", jsonObjectString);
+            return JMException.handleExceptionAndThrowRuntimeEx(log, e, "buildSourceByJsonMapper", jsonObjectString);
         }
     }
 

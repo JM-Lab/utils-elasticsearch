@@ -1,6 +1,6 @@
 package kr.jm.utils.elasticsearch;
 
-import kr.jm.utils.exception.JMExceptionManager;
+import kr.jm.utils.exception.JMException;
 import kr.jm.utils.helper.JMLog;
 import lombok.extern.slf4j.Slf4j;
 import org.elasticsearch.action.ActionListener;
@@ -21,8 +21,6 @@ import java.util.Map;
 import java.util.Optional;
 
 import static java.util.stream.Collectors.*;
-import static kr.jm.utils.helper.JMOptional.ifNotNull;
-import static kr.jm.utils.helper.JMPredicate.peek;
 
 /**
  * The type Jm elasticsearch bulk.
@@ -36,7 +34,7 @@ class JMElasticsearchBulk {
         @Override
         public void onResponse(BulkResponse bulkResponse) {
             if (bulkResponse.hasFailures()) {
-                JMExceptionManager
+                JMException
                         .handleException(log, new RuntimeException("ElasticSearch Insert Bulk Error !!!"), "onResponse",
                                 bulkResponse.buildFailureMessage());
             } else {
@@ -46,7 +44,7 @@ class JMElasticsearchBulk {
 
         @Override
         public void onFailure(Exception e) {
-            JMExceptionManager.handleException(log, e, "onFailure");
+            JMException.handleException(log, e, "onFailure");
         }
     };
 
@@ -60,7 +58,7 @@ class JMElasticsearchBulk {
 
         @Override
         public void afterBulk(long executionId, BulkRequest bulkRequest, Throwable failure) {
-            JMExceptionManager.handleException(log, failure, "afterBulk", executionId, bulkRequest.getDescription());
+            JMException.handleException(log, failure, "afterBulk", executionId, bulkRequest.getDescription());
         }
 
         @Override
@@ -116,21 +114,21 @@ class JMElasticsearchBulk {
      *
      * @param bulkProcessorListener the bulk processor listener
      * @param bulkActions           the bulk actions
-     * @param byteSizeValue         the byte size value
+     * @param bulkSize              the bulk size
      * @param flushInterval         the flush interval
      * @param concurrentRequests    the concurrent requests
      * @param backoffPolicy         the backoff policy
      * @return the bulk processor builder
      */
     public Builder getBulkProcessorBuilder(Listener bulkProcessorListener, Integer bulkActions,
-            ByteSizeValue byteSizeValue, TimeValue flushInterval, Integer concurrentRequests,
+            ByteSizeValue bulkSize, TimeValue flushInterval, Integer concurrentRequests,
             BackoffPolicy backoffPolicy) {
         Builder builder = getBuilder(bulkProcessorListener);
-        ifNotNull(bulkActions, builder::setBulkActions);
-        ifNotNull(byteSizeValue, builder::setBulkSize);
-        ifNotNull(flushInterval, builder::setFlushInterval);
-        ifNotNull(concurrentRequests, builder::setConcurrentRequests);
-        ifNotNull(backoffPolicy, builder::setBackoffPolicy);
+        Optional.ofNullable(bulkActions).ifPresent(builder::setBulkActions);
+        Optional.ofNullable(bulkSize).ifPresent(builder::setBulkSize);
+        Optional.ofNullable(flushInterval).ifPresent(builder::setFlushInterval);
+        Optional.ofNullable(concurrentRequests).ifPresent(builder::setConcurrentRequests);
+        Optional.ofNullable(backoffPolicy).ifPresent(builder::setBackoffPolicy);
         return builder;
     }
 
@@ -263,7 +261,7 @@ class JMElasticsearchBulk {
      * Close bulk processor.
      */
     public void closeBulkProcessor() {
-        Optional.ofNullable(bulkProcessor).filter(peek(BulkProcessor::flush)).ifPresent(BulkProcessor::close);
+        Optional.ofNullable(bulkProcessor).stream().peek(BulkProcessor::flush).forEach(BulkProcessor::close);
     }
 
     /**
