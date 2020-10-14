@@ -103,8 +103,7 @@ public class JMEmbeddedElasticsearch extends Node {
      * @return the transport ip port pair
      */
     public String getTransportIpPortPair() {
-        return getCurrentNode().getTransport().address().publishAddress()
-                .toString();
+        return getCurrentNode().getNode().getAddress().toString();
     }
 
     private NodeInfo getCurrentNode() {
@@ -113,16 +112,6 @@ public class JMEmbeddedElasticsearch extends Node {
                 .prepareNodesInfo(cluster.prepareState().get().getState()
                         .getNodes().getLocalNodeId())
                 .get().getNodes().iterator().next();
-    }
-
-    /**
-     * Gets http ip port pair.
-     *
-     * @return the http ip port pair
-     */
-    public String getHttpIpPortPair() {
-        return getCurrentNode().getTransport().address().publishAddress()
-                .toString();
     }
 
 }

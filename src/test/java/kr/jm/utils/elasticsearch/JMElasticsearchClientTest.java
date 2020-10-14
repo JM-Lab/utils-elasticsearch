@@ -7,7 +7,7 @@ import kr.jm.utils.helper.JMPathOperation;
 import kr.jm.utils.helper.JMThread;
 import org.elasticsearch.action.bulk.BulkResponse;
 import org.elasticsearch.action.search.SearchResponse;
-import org.elasticsearch.cluster.metadata.MappingMetaData;
+import org.elasticsearch.cluster.metadata.MappingMetadata;
 import org.elasticsearch.common.collect.ImmutableOpenMap;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
@@ -141,7 +141,7 @@ public class JMElasticsearchClientTest {
             assertTrue(jmElasticsearchClient.create(index));
         jmElasticsearchClient.sendData(index, sourceObject);
         JMThread.sleep(1000);
-        ImmutableOpenMap<String, ImmutableOpenMap<String, MappingMetaData>> mappings =
+        ImmutableOpenMap<String, ImmutableOpenMap<String, MappingMetadata>> mappings =
                 jmElasticsearchClient.getMappingsResponse(indices);
         System.out.println(mappings);
         assertTrue(mappings.containsKey(index));

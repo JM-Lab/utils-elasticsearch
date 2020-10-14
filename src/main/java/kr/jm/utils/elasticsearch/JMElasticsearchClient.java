@@ -17,7 +17,7 @@ import org.elasticsearch.action.get.GetResponse;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.action.update.UpdateRequestBuilder;
 import org.elasticsearch.action.update.UpdateResponse;
-import org.elasticsearch.cluster.metadata.MappingMetaData;
+import org.elasticsearch.cluster.metadata.MappingMetadata;
 import org.elasticsearch.common.collect.ImmutableOpenMap;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.settings.Settings.Builder;
@@ -231,7 +231,7 @@ public class JMElasticsearchClient extends PreBuiltTransportClient {
      * @param indices the indices
      * @return the mappings response
      */
-    public ImmutableOpenMap<String, ImmutableOpenMap<String, MappingMetaData>> getMappingsResponse(String... indices) {
+    public ImmutableOpenMap<String, ImmutableOpenMap<String, MappingMetadata>> getMappingsResponse(String... indices) {
         GetMappingsRequestBuilder getMappingsRequestBuilder = admin().indices().prepareGetMappings(indices);
         return JMElasticsearchUtil.logRequestQueryAndReturn("getMappingsResponse", getMappingsRequestBuilder,
                 getMappingsRequestBuilder.execute()).getMappings();
