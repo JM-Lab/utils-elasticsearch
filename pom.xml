@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>kr.jmlab</groupId>
     <artifactId>jmlab-utils-elasticsearch</artifactId>
-    <version>7.9.2</version>
+    <version>7.9.3</version>
     <packaging>jar</packaging>
     <name>JMLab-Utils-Elasticsearch</name>
     <description>JMLab Utility Libraries For Elasticsearch Client</description>
@@ -117,11 +117,6 @@
             <groupId>org.elasticsearch.client</groupId>
             <artifactId>transport</artifactId>
             <version>${elasticsearch.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.fasterxml.jackson.jaxrs</groupId>
-            <artifactId>jackson-jaxrs-json-provider</artifactId>
-            <version>2.11.0</version>
         </dependency>
         <dependency>
             <groupId>kr.jmlab</groupId>

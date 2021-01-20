@@ -11,7 +11,7 @@ JMLab Utility Libraries For Elasticsearch 7
 * ***BulkProcessor***
 
 ## version
-[![Maven Central](https://maven-badges.herokuapp.com/maven-central/kr.jmlab/jmlab-utils-elasticsearch/badge.svg)](http://search.maven.org/#artifactdetails%7Ckr.jmlab%7Cjmlab-utils-elasticsearch%7C7.9.2%7Cjar)
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/kr.jmlab/jmlab-utils-elasticsearch/badge.svg)](http://search.maven.org/#artifactdetails%7Ckr.jmlab%7Cjmlab-utils-elasticsearch%7C7.9.3%7Cjar)
 
 ## Prerequisites:
 * Java 11 or later
@@ -22,7 +22,7 @@ Checkout the source code:
 
     https://github.com/JM-Lab/utils-elasticsearch.git
     cd utils-elasticsearch
-    git checkout -b 7.9.2 origin/7.9.2
+    git checkout -b 7.9.3 origin/7.9.3
     mvn install
 
 ## Usage
@@ -32,7 +32,7 @@ Set up pom.xml :
     <dependency>
 			<groupId>kr.jmlab</groupId>
 			<artifactId>jmlab-utils-elasticsearch</artifactId>
-			<version>7.9.2</version>
+			<version>7.9.3</version>
 	</dependency>
     (...)
 
