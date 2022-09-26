@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>kr.jmlab</groupId>
     <artifactId>jmlab-utils-elasticsearch</artifactId>
-    <version>7.9.3</version>
+    <version>7.10.2</version>
     <packaging>jar</packaging>
     <name>JMLab-Utils-Elasticsearch</name>
     <description>JMLab Utility Libraries For Elasticsearch Client</description>
@@ -36,11 +36,11 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <java.version>11</java.version>
-        <log4j.version>2.13.3</log4j.version>
-        <slf4j.version>1.7.30</slf4j.version>
-        <junit.version>4.13.1</junit.version>
-        <lombok.version>1.18.16</lombok.version>
-        <jmlab-utils-java11.version>0.1.0</jmlab-utils-java11.version>
+        <log4j.version>2.19.0</log4j.version>
+        <slf4j.version>2.0.1</slf4j.version>
+        <junit.version>4.13.2</junit.version>
+        <lombok.version>1.18.24</lombok.version>
+        <jmlab-utils-java11.version>0.1.3</jmlab-utils-java11.version>
         <elasticsearch.version>${project.version}</elasticsearch.version>
     </properties>
 
@@ -113,6 +113,11 @@
         </plugins>
     </build>
     <dependencies>
+        <dependency>
+            <groupId>org.elasticsearch.client</groupId>
+            <artifactId>elasticsearch-rest-high-level-client</artifactId>
+            <version>${elasticsearch.version}</version>
+        </dependency>
         <dependency>
             <groupId>org.elasticsearch.client</groupId>
             <artifactId>transport</artifactId>
